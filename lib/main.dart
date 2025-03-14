@@ -17,7 +17,6 @@ void main() {
 }
 
 class firstPage extends StatefulWidget{
-
   firstPageState createState() => firstPageState();
 }
 class firstPageState extends State<firstPage> {
@@ -28,6 +27,20 @@ class firstPageState extends State<firstPage> {
     });
   }
 
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body:
+      Image.asset("img/img3.png"),
+    );
+  }
+}
+class HomePage extends StatefulWidget{
+  _homePageState createState() => _homePageState();
+}
+class _homePageState extends State<HomePage>{
+  void initState(){
+    super.initState();
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
@@ -41,8 +54,4 @@ class firstPageState extends State<firstPage> {
       ),
     );
   }
-}
-class HomePage extends StatefulWidget{
-  _homePage createState => _homePage
-
 }
