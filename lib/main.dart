@@ -45,7 +45,7 @@ class _homePageState extends State<HomePage>{
     return Scaffold(
       body: Column(
         children: [
-          Image.asset('img/img2.png'),
+          Image.asset('img/img3.png'),
           Container(
               child:
               ElevatedButton(onPressed: () {}, child: Text("Next"))
