@@ -87,6 +87,100 @@ class _homePage extends State<HomePage>{
             ),
           ],
         ),
+      backgroundColor: Color(0xFFB1C9EF) ,
+      body:Column(
+
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text("Functionalities",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF18185C),
+                  ),),
+              ],),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF628ECB),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        iconSize: 30, // Taille de l'icône
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: Color(0xFF18185C), // Couleur de l'icône
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                    Text(
+                      "Create \n Class",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF18185C),
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF628ECB),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.groups_outlined,
+                          color: Color(0xFF18185C),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                    Text(
+                      "Create \n group",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF18185C),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ]
+      )
     );
 }
 }
