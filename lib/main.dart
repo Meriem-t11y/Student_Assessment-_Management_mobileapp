@@ -100,12 +100,17 @@ class _homePage extends State<HomePage>{
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF18185C),
                   ),),
-                Text("See all",
+                InkWell(
+                  onTap: () {
+                    print("Texte cliqué !");
+                    // Place ici l'action que tu veux effectuer
+                  },
+                child: Text("See all",
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
                     color: Color(0xFF18185C),
-                  ),),
+                    decoration: TextDecoration.underline
+                  ),),),
 
               ],),
 
