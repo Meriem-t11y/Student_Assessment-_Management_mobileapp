@@ -89,15 +89,11 @@ class _homePage extends State<HomePage>{
         ),
       backgroundColor: Color(0xFFFFFFFF) ,
       body:Column(
-
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Espacement externe avant le texte "Functionalities"
-                Padding(
-                  padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
-                  child: Text(
+                  Text(
                     "Functionalities",
                     textAlign: TextAlign.start,
                     style: TextStyle(
@@ -106,7 +102,6 @@ class _homePage extends State<HomePage>{
                       color: Color(0xFF18185C),
                     ),
                   ),
-                ),
                 // Espacement entre les deux textes
                 SizedBox(width: 75),
                 InkWell(
@@ -127,7 +122,6 @@ class _homePage extends State<HomePage>{
                 ),
               ],
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -251,43 +245,6 @@ class _homePage extends State<HomePage>{
                 Padding(
                   padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
                   child: Text(
-                    "My Groups",
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF18185C),
-                    ),
-                  ),
-                ),
-                // Espacement entre les deux textes
-                SizedBox(width: 75),
-                InkWell(
-                  onTap: () {
-                    print("Texte cliqué !");
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
-                    child: Text(
-                      "See all",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Espacement externe avant le texte "Functionalities"
-                Padding(
-                  padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
-                  child: Text(
                     "My Class",
                     textAlign: TextAlign.start,
                     style: TextStyle(
@@ -317,8 +274,130 @@ class _homePage extends State<HomePage>{
                 ),
               ],
             ),
-           ]
-      )
+            Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GridView.builder(
+                    scrollDirection: Axis.horizontal,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 2.0,
+                      mainAxisSpacing: 2.0,
+                      childAspectRatio: 1/3,
+                    ),
+                    itemCount: 7,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(padding:  EdgeInsets.fromLTRB(5, 5, 2, 0),
+                                    child:Text("Title.......",
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                          color: Color(0xFFFFFFFF),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20
+                                      ),
+                                    ),),
+                                  IconButton(onPressed: (){}, icon: Icon(Icons.border_color_outlined , color: Color(0xFFFFFFFF),))
+                                ],
+                              ),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                 Text("Level",
+                                        textAlign: TextAlign.start,
+                                        style: TextStyle(
+                                            color: Color(0xFFFFFFFF),
+                                            fontSize: 16
+                                        ),
+                                      ),
+                                  IconButton(onPressed: (){}, icon: Icon(Icons.delete_outline,color: Color(0xFFFFFFFF),))
+
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                )),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Espacement externe avant le texte "Functionalities"
+                Padding(
+                  padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
+                  child: Text(
+                    "My Groups",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF18185C),
+                    ),
+                  ),
+                ),
+                // Espacement entre les deux textes
+                SizedBox(width: 75),
+                InkWell(
+                  onTap: () {
+                    print("Texte cliqué !");
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
+                    child: Text(
+                      "See all",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: GridView.builder(
+                    scrollDirection: Axis.vertical,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,       // Nombre de colonnes
+                      crossAxisSpacing: 5.0,  // Espacement horizontal
+                      mainAxisSpacing: 5.0,   // Espacement vertical
+                      childAspectRatio: 3/2,   // Ratio largeur/hauteur
+                    ),
+                    itemCount: 14,  // Nombre d'éléments dans la grille
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFF628ECB),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Item $index',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                )),
+      ])
     );
 }
 }
