@@ -49,9 +49,9 @@ class _homePage extends State<HomePage>{
     return Scaffold(
       appBar:
         AppBar(
-          elevation: 4, // Ombre pour un effet d'élévation
-          backgroundColor: Color(0xFF18185C), // Couleur de fond sombre
-          titleSpacing: 0, // Pour que le champ de recherche soit collé à l'icône
+          elevation: 4,
+          backgroundColor: Color(0xFF18185C),
+          titleSpacing: 0,
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Icon(
@@ -104,7 +104,7 @@ class _homePage extends State<HomePage>{
                   ),
                 // Espacement entre les deux textes
                 SizedBox(width: 75),
-                InkWell(
+                InkWell (
                   onTap: () {
                     print("Texte cliqué !");
                   },
@@ -277,17 +277,14 @@ class _homePage extends State<HomePage>{
             Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: GridView.builder(
+                  child: GridView.count(
                     scrollDirection: Axis.horizontal,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 2.0,
                       mainAxisSpacing: 2.0,
                       childAspectRatio: 1/3,
-                    ),
-                    itemCount: 7,
-                    itemBuilder: (context, index) {
-                      return Container(
+                    children: [
+                      Container(
                         decoration: BoxDecoration(
                           color: Colors.blueAccent,
                           borderRadius: BorderRadius.circular(12),
@@ -307,38 +304,142 @@ class _homePage extends State<HomePage>{
                                           fontSize: 20
                                       ),
                                     ),),
-                                  IconButton(onPressed: (){}, icon: Icon(Icons.border_color_outlined , color: Color(0xFFFFFFFF),))
+                                  IconButton(onPressed: (){},
+                                      icon: Icon(Icons.border_color_outlined ,
+                                        color: Color(0xFFFFFFFF),
+                                      )
+                                  )
                                 ],
                               ),
 
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                 Text("Level",
-                                        textAlign: TextAlign.start,
-                                        style: TextStyle(
+                                  Text("Level",
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 16
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                          onPressed: (){},
+                                          icon: Icon(Icons.delete_outline,
                                             color: Color(0xFFFFFFFF),
-                                            fontSize: 16
-                                        ),
+                                          )
                                       ),
-                                  IconButton(onPressed: (){}, icon: Icon(Icons.delete_outline,color: Color(0xFFFFFFFF),))
+                                      IconButton(
+                                          onPressed: (){},
+                                          icon: Icon(Icons.comment_bank_outlined,
+                                            color: Color(0xFFFFFFFF),
+                                          )
+                                      )
+
+
+                                    ],
+                                  )
 
                                 ],
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color:Color(0xFF18185C),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(padding:  EdgeInsets.fromLTRB(5, 5, 2, 0),
+                                    child:Text("Title.......",
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                          color: Color(0xFFFFFFFF),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20
+                                      ),
+                                    ),),
+                                  IconButton(onPressed: (){},
+                                      icon: Icon(Icons.border_color_outlined ,
+                                        color: Color(0xFFFFFFFF),
+                                      )
+                                  )
+                                ],
+                              ),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Level",
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 16
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                          onPressed: (){},
+                                          icon: Icon(Icons.delete_outline,
+                                            color: Color(0xFFFFFFFF),
+                                          )
+                                      ),
+                                      IconButton(
+                                          onPressed: (){},
+                                          icon: Icon(Icons.comment_bank_outlined,
+                                            color: Color(0xFFFFFFFF),
+                                          )
+                                      )
+
+
+                                    ],
+                                  )
+
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:Color(0xFF18185C) ,
+                            width: 2.0,
+                          ),
+                        ),
+                        child:Center(child:Column(
+                          children: [
+                            Padding(padding:EdgeInsets.all(8) ,child:  Icon(Icons.add_circle_outline ,
+                              color: Color(0xFF18185C),
+                              size: 40, ),),
+                            Text("add a new class",
+                              style: TextStyle(
+                                  color: Color(0xFF18185C),
+                                fontWeight: FontWeight.bold
+                              ),)
+                          ],
+                        ) ,)
+                      )
+                    ],
                   ),
                 )),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Espacement externe avant le texte "Functionalities"
                 Padding(
-                  padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
+                  padding: EdgeInsets.all(8.0),
                   child: Text(
                     "My Groups",
                     textAlign: TextAlign.start,
@@ -349,14 +450,13 @@ class _homePage extends State<HomePage>{
                     ),
                   ),
                 ),
-                // Espacement entre les deux textes
                 SizedBox(width: 75),
                 InkWell(
                   onTap: () {
                     print("Texte cliqué !");
                   },
                   child: Padding(
-                    padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
+                    padding: EdgeInsets.all(7.0),
                     child: Text(
                       "See all",
                       style: TextStyle(
@@ -375,12 +475,12 @@ class _homePage extends State<HomePage>{
                   child: GridView.builder(
                     scrollDirection: Axis.vertical,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,       // Nombre de colonnes
-                      crossAxisSpacing: 5.0,  // Espacement horizontal
-                      mainAxisSpacing: 5.0,   // Espacement vertical
-                      childAspectRatio: 3/2,   // Ratio largeur/hauteur
+                      crossAxisCount: 1,
+                      crossAxisSpacing: 5.0,
+                      mainAxisSpacing: 5.0,
+                      childAspectRatio:5/2 ,
                     ),
-                    itemCount: 14,  // Nombre d'éléments dans la grille
+                    itemCount: 14,
                     itemBuilder: (context, index) {
                       return Container(
                         decoration: BoxDecoration(
@@ -389,7 +489,7 @@ class _homePage extends State<HomePage>{
                         ),
                         child: Center(
                           child: Text(
-                            'Item $index',
+                            'group n: $index',
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
                         ),
