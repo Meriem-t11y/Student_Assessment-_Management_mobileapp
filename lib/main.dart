@@ -92,14 +92,21 @@ class _homePage extends State<HomePage>{
 
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Functionalities",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF18185C),
+                  ),),
+                Text("See all",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF18185C),
                   ),),
+
               ],),
 
             Row(
