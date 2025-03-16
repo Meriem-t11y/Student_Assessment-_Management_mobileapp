@@ -465,7 +465,7 @@ class _homePage extends State<HomePage>{
                                   child: Form(
                                     key:_formKey ,
                                     child: Column(
-                                      mainAxisSize: MainAxisSize.min,
+                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         TextFormField(
                                           decoration: InputDecoration(
