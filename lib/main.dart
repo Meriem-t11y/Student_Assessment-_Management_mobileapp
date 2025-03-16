@@ -7,10 +7,11 @@ void main() {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute:'/' ,
+      initialRoute:'/3' ,
       routes: {
         '/': (context) => firstPage(),
         '/homepage': (context) =>HomePage(),
+        '/3' : (context) =>classInfo()
       },
     )
   );
@@ -20,6 +21,7 @@ class firstPage extends StatefulWidget{
 
   firstPageState createState() => firstPageState();
 }
+
 class firstPageState extends State<firstPage> {
   void initState() {
     super.initState();
@@ -39,10 +41,12 @@ class firstPageState extends State<firstPage> {
     );
   }
 }
+
 class HomePage extends StatefulWidget{
   _homePage createState() => _homePage();
 
 }
+
 class _homePage extends State<HomePage>{
   TextEditingController searchcontroller=TextEditingController();
   Widget build(BuildContext context) {
@@ -500,4 +504,19 @@ class _homePage extends State<HomePage>{
       ])
     );
 }
+}
+
+class classInfo extends StatefulWidget{
+  _classInfo createState() =>  _classInfo();
+}
+class _classInfo extends State<classInfo>{
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Column(
+          children: [
+
+          ],
+        )
+    );
+  }
 }
