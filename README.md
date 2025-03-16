@@ -15,7 +15,7 @@
 
 - **Framework**: Flutter
 - **Language**: Dart
-- **Database**: SQLite / Firebase
+- **Database**: SQfLite 
 - **State Management**: Provider 
 - **Charts**: charts_flutter
 
