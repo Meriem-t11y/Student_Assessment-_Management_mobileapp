@@ -1,16 +1,15 @@
-
 import 'dart:async';
-
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 void main() {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute:'/3' ,
+      initialRoute:'/' ,
       routes: {
-        '/': (context) => firstPage(),
-        '/homepage': (context) =>HomePage(),
+        '/1h': (context) => firstPage(),
+        '/': (context) =>HomePage(),
         '/3' : (context) =>classInfo()
       },
     )
@@ -26,7 +25,7 @@ class firstPageState extends State<firstPage> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 3), () {
-      Navigator.pushNamed(context, '/homepage');
+      Navigator.pushNamed(context, '/');
     });
   }
 
@@ -48,7 +47,11 @@ class HomePage extends StatefulWidget{
 }
 
 class _homePage extends State<HomePage>{
-  TextEditingController searchcontroller=TextEditingController();
+  TextEditingController searchcontroller=TextEditingController() ,
+      nameContoller=TextEditingController(),
+      yearController=TextEditingController();
+  String? level ,speciality;
+  final _formKey = GlobalKey<FormState>();
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:
@@ -59,7 +62,7 @@ class _homePage extends State<HomePage>{
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Icon(
-              Icons.border_color_outlined,
+              Icons.assignment,
               color: Color(0xFFB1C9EF),
               size: 28, // Agrandir l'icône
             ),
@@ -108,22 +111,6 @@ class _homePage extends State<HomePage>{
                   ),
                 // Espacement entre les deux textes
                 SizedBox(width: 75),
-                InkWell (
-                  onTap: () {
-                    print("Texte cliqué !");
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
-                    child: Text(
-                      "See all",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
             Row(
@@ -147,12 +134,114 @@ class _homePage extends State<HomePage>{
                         ],
                       ),
                       child: IconButton(
-                        iconSize: 30, // Taille de l'icône
+                        iconSize: 30,
                         icon: Icon(
                           Icons.auto_stories_outlined,
-                          color: Color(0xFF18185C), // Couleur de l'icône
+                          color: Color(0xFF18185C),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Color(0xFFD5DEEF ),
+                                title: Text('Enter Class Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
+                                content: SingleChildScrollView( // Pour éviter le débordement
+                                  child: Form(
+                                    key:_formKey ,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Class Name*',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          controller:nameContoller ,
+                                          validator: (value){
+                                            if(value==null|| value.isEmpty){
+                                              return "you must fill class name";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Speciality',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: ['Engineer', 'Licence', 'Master'].
+                                          map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          )).toList(),
+                                          onChanged: (value) {
+                                            speciality=value;
+                                          },
+                                          validator: (value){
+                                            if( value==null || value.isEmpty){
+                                              return " you must fill level";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Level',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: ['1st ', '2nd', '3rd']
+                                              .map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          )
+                                          ).toList(),
+                                          onChanged: (value) {
+                                            level=value;
+                                          },
+                                          validator: (value){
+                                            if( value==null || value.isEmpty){
+                                              return " you must fill level";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Year*',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          validator: (value){
+                                            if(value==null|| value.isEmpty){
+                                              return "you must fill year";
+                                            }
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if(_formKey.currentState!.validate()){
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('The class was create seccefully!')),
+                                        );}
+                                    },
+                                    child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
+                                    style: ElevatedButton.styleFrom(
+                                       backgroundColor: Color(0xFFB1C9EF),
+                                    ),
+                                  ),
+                                ],
+                              )
+                          );
+                        },
                       ),
                     ),
                     Text(
@@ -189,7 +278,153 @@ class _homePage extends State<HomePage>{
                           Icons.groups_outlined,
                           color: Color(0xFF18185C),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: Color(0xFFD5DEEF),
+                              title: Text(
+                                'Enter Class Informations',
+                                style: TextStyle(color: Color(0xFF18185C)),
+                              ),
+                              content: SingleChildScrollView(
+                                // Pour éviter le débordement
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Class Name*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        controller: nameContoller,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill class name";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Speciality',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['Engineer', 'Licence', 'Master']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          speciality = value;
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill speciality";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Level',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['1st', '2nd', '3rd']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          level = value;
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill level";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Year*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill year";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Number*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill number";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          // Implémentez la logique de sélection du fichier ici
+                                          final result = await FilePicker.platform.pickFiles(
+                                            type: FileType.custom,
+                                            allowedExtensions: ['csv'],
+                                          );
+                                          if (result != null) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('CSV file uploaded successfully!')),
+                                            );
+                                          }
+                                        },
+                                        icon: Icon(Icons.upload_file),
+                                        label: Text("Upload CSV File"),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(0xFFB1C9EF),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('The class was created successfully!')),
+                                      );
+                                    }
+                                  },
+                                  child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFFB1C9EF),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                     Text(
@@ -266,14 +501,7 @@ class _homePage extends State<HomePage>{
                   },
                   child: Padding(
                     padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
-                    child: Text(
-                      "See all",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
+                    child: Icon(Icons.last_page , color: Colors.blue,),
                   ),
                 ),
               ],
@@ -424,9 +652,109 @@ class _homePage extends State<HomePage>{
                         ),
                         child:Center(child:Column(
                           children: [
-                            Padding(padding:EdgeInsets.all(8) ,child:  Icon(Icons.add_circle_outline ,
+                            Padding(padding:EdgeInsets.all(8) ,child:  IconButton(icon :Icon(Icons.add_circle_outline ,size: 35, ),
+                              onPressed: (){
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Enter Class Informations '),
+                                    content: SingleChildScrollView( // Pour éviter le débordement
+                                    child: Form(
+                                      key:_formKey ,
+                                      child: Column(
+                                         mainAxisSize: MainAxisSize.min,
+                                         children: [
+                                            TextFormField(
+                                              decoration: InputDecoration(
+                                                labelText: 'Class Name*',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              controller:nameContoller ,
+                                              validator: (value){
+                                                if(value==null|| value.isEmpty){
+                                                  return "you must fill class name";
+                                                }
+                                              },
+                                            ),
+                                            SizedBox(height: 8),
+                                            DropdownButtonFormField<String>(
+                                             decoration: InputDecoration(
+                                               labelText: 'Speciality',
+                                               border: OutlineInputBorder(),
+                                             ),
+                                             items: ['Engineer', 'Licence', 'Master'].
+                                             map((String value) => DropdownMenuItem<String>(
+                                               value: value,
+                                               child: Text(value),
+                                             )).toList(),
+                                             onChanged: (value) {
+                                               speciality=value;
+                                             },
+                                              validator: (value){
+                                                if( value==null || value.isEmpty){
+                                                  return " you must fill level";
+                                                }
+                                              },
+                                            ),
+                                            SizedBox(height: 8),
+                                            DropdownButtonFormField<String>(
+                                             decoration: InputDecoration(
+                                               labelText: 'Level',
+                                               border: OutlineInputBorder(),
+                                             ),
+                                             items: ['1st ', '2nd', '3rd']
+                                                 .map((String value) => DropdownMenuItem<String>(
+                                               value: value,
+                                               child: Text(value),
+                                             )
+                                             ).toList(),
+                                             onChanged: (value) {
+                                               level=value;
+                                             },
+                                              validator: (value){
+                                               if( value==null || value.isEmpty){
+                                                 return " you must fill level";
+                                               }
+                                              },
+                                           ),
+                                            SizedBox(height: 8),
+                                            TextFormField(
+                                             decoration: InputDecoration(
+                                               labelText: 'Year*',
+                                               border: OutlineInputBorder(),
+                                             ),
+                                              validator: (value){
+                                                if(value==null|| value.isEmpty){
+                                                  return "you must fill year";
+                                                }
+                                              },
+                                           )
+                                         ],
+                                      ),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Annuler'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                      if(_formKey.currentState!.validate()){
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('The class was create seccefully!')),
+                                      );}
+                                      },
+                                      child: Text('Valider'),
+                                    ),
+                                  ],
+                                  )
+                                );
+
+                              },
                               color: Color(0xFF18185C),
-                              size: 40, ),),
+                               ),),
                             Text("add a new class",
                               style: TextStyle(
                                   color: Color(0xFF18185C),
@@ -438,7 +766,6 @@ class _homePage extends State<HomePage>{
                     ],
                   ),
                 )),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -479,16 +806,17 @@ class _homePage extends State<HomePage>{
                   child: GridView.builder(
                     scrollDirection: Axis.vertical,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1,
+                      crossAxisCount: 3,
                       crossAxisSpacing: 5.0,
                       mainAxisSpacing: 5.0,
-                      childAspectRatio:5/2 ,
+                      childAspectRatio:3/4 ,
                     ),
                     itemCount: 14,
                     itemBuilder: (context, index) {
                       return Container(
                         decoration: BoxDecoration(
-                          color: Color(0xFF628ECB),
+                          color: ((index+1) % 2== 0)? Color(0xFF151567) :((index+1) % 3== 0)?
+                          Colors.blueAccent:Color(0xFF628ECB),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
@@ -510,13 +838,18 @@ class classInfo extends StatefulWidget{
   _classInfo createState() =>  _classInfo();
 }
 class _classInfo extends State<classInfo>{
+
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Column(
+      appBar: AppBar(
+        title: Text("My class"),
+      ),
+        body:Form(child: Column(
           children: [
 
+
           ],
-        )
+        ))
     );
   }
 }
