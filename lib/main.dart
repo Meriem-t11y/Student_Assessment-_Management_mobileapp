@@ -480,7 +480,7 @@ class _homePage extends State<HomePage>{
                                           },
                                         ),
                                         SizedBox(height: 8),
-                                        TextFormField(
+                                         TextFormField(
                                           decoration: InputDecoration(
                                             labelText: 'First Name*',
                                             border: OutlineInputBorder(),
