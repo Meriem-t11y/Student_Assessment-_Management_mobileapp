@@ -1,16 +1,21 @@
-# untitled
+# 📚 Student Assessment Manager
 
-A new Flutter project.
+**Student Assessment Manager** is a mobile application developed with **Flutter** and **Dart**. It is designed to manage student assessments during practical sessions as well as for given tasks such as presentations or projects.
 
-## Getting Started
+## 🌟 Features
 
-This project is a starting point for a Flutter application.
+- 🔍 **Student Management**: Add, edit, and delete students.
+- 📝 **Assessment Management**: Record assessments during practical sessions.
+- 🗃️ **Task Management**: Track presentations, projects, and other assignments.
+- 📊 **Results Visualization**: Display results as tables or charts.
+- 🗂️ **Data Export**: Generate reports in PDF or Excel format.
+- 🔔 **Notifications**: Reminders for upcoming assessments.
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Technologies Used
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Framework**: Flutter
+- **Language**: Dart
+- **Database**: SQLite / Firebase
+- **State Management**: Provider 
+- **Charts**: charts_flutter
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
