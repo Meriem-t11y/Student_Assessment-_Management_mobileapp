@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -248,7 +249,7 @@ class _homePage extends State<HomePage>{
                       textAlign: TextAlign.center,
                       "Create \n Class",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.normal,
                         color: Color(0xFF18185C),
                       ),
@@ -284,7 +285,7 @@ class _homePage extends State<HomePage>{
                             builder: (context) => AlertDialog(
                               backgroundColor: Color(0xFFD5DEEF),
                               title: Text(
-                                'Enter Class Informations',
+                                'Enter group Informations',
                                 style: TextStyle(color: Color(0xFF18185C)),
                               ),
                               content: SingleChildScrollView(
@@ -294,20 +295,6 @@ class _homePage extends State<HomePage>{
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      TextFormField(
-                                        decoration: InputDecoration(
-                                          labelText: 'Class Name*',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        controller: nameContoller,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return "You must fill class name";
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
                                       DropdownButtonFormField<String>(
                                         decoration: InputDecoration(
                                           labelText: 'Speciality',
@@ -354,19 +341,6 @@ class _homePage extends State<HomePage>{
                                       SizedBox(height: 8),
                                       TextFormField(
                                         decoration: InputDecoration(
-                                          labelText: 'Year*',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return "You must fill year";
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
-                                      TextFormField(
-                                        decoration: InputDecoration(
                                           labelText: 'Number*',
                                           border: OutlineInputBorder(),
                                         ),
@@ -381,23 +355,43 @@ class _homePage extends State<HomePage>{
                                       SizedBox(height: 8),
                                       ElevatedButton.icon(
                                         onPressed: () async {
-                                          // Implémentez la logique de sélection du fichier ici
-                                          final result = await FilePicker.platform.pickFiles(
-                                            type: FileType.custom,
-                                            allowedExtensions: ['csv'],
-                                          );
-                                          if (result != null) {
+                                          try {
+                                            // Ouvrir le sélecteur de fichier
+                                            final result = await FilePicker.platform.pickFiles(
+                                              type: FileType.custom,
+                                              allowedExtensions: ['csv','pdf'],
+                                            );
+
+                                            if (result != null && result.files.isNotEmpty) {
+                                              String? filePath = result.files.single.path;
+                                              if (filePath != null) {
+
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('CSV file uploaded successfully!')),
+                                                );
+                                              }
+                                            } else {
+                                              print("Aucun fichier sélectionné.");
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('No file selected.')),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            print("Erreur lors de la sélection du fichier : $e");
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('CSV file uploaded successfully!')),
+                                              SnackBar(content: Text('Erreur lors du téléchargement du fichier.')),
                                             );
                                           }
                                         },
+
                                         icon: Icon(Icons.upload_file),
-                                        label: Text("Upload CSV File"),
-                                        style: ElevatedButton.styleFrom(
+                                          label: Text("Upload list student"),
+                                          style: ElevatedButton.styleFrom(
                                           backgroundColor: Color(0xFFB1C9EF),
-                                        ),
-                                      ),
+                                    ),
+                                  ),
+                                      SizedBox(height: 8),
+
                                     ],
                                   ),
                                 ),
@@ -412,7 +406,7 @@ class _homePage extends State<HomePage>{
                                     if (_formKey.currentState!.validate()) {
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('The class was created successfully!')),
+                                        SnackBar(content: Text('The group was created successfully!')),
                                       );
                                     }
                                   },
@@ -431,7 +425,7 @@ class _homePage extends State<HomePage>{
                       textAlign: TextAlign.center,
                       "Create \n group",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.normal,
                         color: Color(0xFF18185C),
                       ),
@@ -456,19 +450,144 @@ class _homePage extends State<HomePage>{
                         ],
                       ),
                       child: IconButton(
-                        iconSize: 30, // Taille de l'icône
+                        iconSize: 30,
                         icon: Icon(
                           Icons.person,
-                          color: Color(0xFF18185C), // Couleur de l'icône
+                          color: Color(0xFF18185C),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Color(0xFFD5DEEF ),
+                                title: Text('Enter student Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
+                                content: SingleChildScrollView(
+                                  child: Form(
+                                    key:_formKey ,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Familly Name*',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          controller:nameContoller ,
+                                          validator: (value){
+                                            if(value==null|| value.isEmpty){
+                                              return "you must fill student Familly name";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'First Name*',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          controller:nameContoller ,
+                                          validator: (value){
+                                            if(value==null|| value.isEmpty){
+                                              return "you must fill student first name";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Speciality',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: ['Engineer', 'Licence', 'Master'].
+                                          map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          )).toList(),
+                                          onChanged: (value) {
+                                            speciality=value;
+                                          },
+                                          validator: (value){
+                                            if( value==null || value.isEmpty){
+                                              return " you must fill speciality";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Level',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: ['1st ', '2nd', '3rd']
+                                              .map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          )
+                                          ).toList(),
+                                          onChanged: (value) {
+                                            level=value;
+                                          },
+                                          validator: (value){
+                                            if( value==null || value.isEmpty){
+                                              return " you must fill level";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Group number',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: ['1 ', '2', '3']
+                                              .map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          )
+                                          ).toList(),
+                                          onChanged: (value) {
+                                            level=value;
+                                          },
+                                          validator: (value){
+                                            if( value==null || value.isEmpty){
+                                              return " you must fill group number";
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if(_formKey.currentState!.validate()){
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('The class was create seccefully!')),
+                                        );}
+                                    },
+                                    child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFFB1C9EF),
+                                    ),
+                                  ),
+                                ],
+                              )
+                          );
+                        },
                       ),
                     ),
                     Text(
-                      "add new\n Student ",
+                      "add \nStudents ",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.normal,
                         color: Color(0xFF18185C),
                       ),
