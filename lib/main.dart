@@ -774,101 +774,105 @@ class _homePage extends State<HomePage>{
                             Padding(padding:EdgeInsets.all(8) ,child:  IconButton(icon :Icon(Icons.add_circle_outline ,size: 35, ),
                               onPressed: (){
                                 showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Enter Class Informations '),
-                                    content: SingleChildScrollView( // Pour éviter le débordement
-                                    child: Form(
-                                      key:_formKey ,
-                                      child: Column(
-                                         mainAxisSize: MainAxisSize.min,
-                                         children: [
-                                            TextFormField(
-                                              decoration: InputDecoration(
-                                                labelText: 'Class Name*',
-                                                border: OutlineInputBorder(),
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: Color(0xFFD5DEEF ),
+                                      title: Text('Enter Class Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
+                                      content: SingleChildScrollView( // Pour éviter le débordement
+                                        child: Form(
+                                          key:_formKey ,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TextFormField(
+                                                decoration: InputDecoration(
+                                                  labelText: 'Class Name*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                controller:nameContoller ,
+                                                validator: (value){
+                                                  if(value==null|| value.isEmpty){
+                                                    return "you must fill class name";
+                                                  }
+                                                },
                                               ),
-                                              controller:nameContoller ,
-                                              validator: (value){
-                                                if(value==null|| value.isEmpty){
-                                                  return "you must fill class name";
-                                                }
-                                              },
-                                            ),
-                                            SizedBox(height: 8),
-                                            DropdownButtonFormField<String>(
-                                             decoration: InputDecoration(
-                                               labelText: 'Speciality',
-                                               border: OutlineInputBorder(),
-                                             ),
-                                             items: ['Engineer', 'Licence', 'Master'].
-                                             map((String value) => DropdownMenuItem<String>(
-                                               value: value,
-                                               child: Text(value),
-                                             )).toList(),
-                                             onChanged: (value) {
-                                               speciality=value;
-                                             },
-                                              validator: (value){
-                                                if( value==null || value.isEmpty){
-                                                  return " you must fill level";
-                                                }
-                                              },
-                                            ),
-                                            SizedBox(height: 8),
-                                            DropdownButtonFormField<String>(
-                                             decoration: InputDecoration(
-                                               labelText: 'Level',
-                                               border: OutlineInputBorder(),
-                                             ),
-                                             items: ['1st ', '2nd', '3rd']
-                                                 .map((String value) => DropdownMenuItem<String>(
-                                               value: value,
-                                               child: Text(value),
-                                             )
-                                             ).toList(),
-                                             onChanged: (value) {
-                                               level=value;
-                                             },
-                                              validator: (value){
-                                               if( value==null || value.isEmpty){
-                                                 return " you must fill level";
-                                               }
-                                              },
-                                           ),
-                                            SizedBox(height: 8),
-                                            TextFormField(
-                                             decoration: InputDecoration(
-                                               labelText: 'Year*',
-                                               border: OutlineInputBorder(),
-                                             ),
-                                              validator: (value){
-                                                if(value==null|| value.isEmpty){
-                                                  return "you must fill year";
-                                                }
-                                              },
-                                           )
-                                         ],
+                                              SizedBox(height: 8),
+                                              DropdownButtonFormField<String>(
+                                                decoration: InputDecoration(
+                                                  labelText: 'Speciality',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                items: ['Engineer', 'Licence', 'Master'].
+                                                map((String value) => DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                )).toList(),
+                                                onChanged: (value) {
+                                                  speciality=value;
+                                                },
+                                                validator: (value){
+                                                  if( value==null || value.isEmpty){
+                                                    return " you must fill level";
+                                                  }
+                                                },
+                                              ),
+                                              SizedBox(height: 8),
+                                              DropdownButtonFormField<String>(
+                                                decoration: InputDecoration(
+                                                  labelText: 'Level',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                items: ['1st ', '2nd', '3rd']
+                                                    .map((String value) => DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                )
+                                                ).toList(),
+                                                onChanged: (value) {
+                                                  level=value;
+                                                },
+                                                validator: (value){
+                                                  if( value==null || value.isEmpty){
+                                                    return " you must fill level";
+                                                  }
+                                                },
+                                              ),
+                                              SizedBox(height: 8),
+                                              TextFormField(
+                                                decoration: InputDecoration(
+                                                  labelText: 'Year*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                validator: (value){
+                                                  if(value==null|| value.isEmpty){
+                                                    return "you must fill year";
+                                                  }
+                                                },
+                                              )
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('Annuler'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                      if(_formKey.currentState!.validate()){
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('The class was create seccefully!')),
-                                      );}
-                                      },
-                                      child: Text('Valider'),
-                                    ),
-                                  ],
-                                  )
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            if(_formKey.currentState!.validate()){
+                                              Navigator.pop(context);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('The class was create seccefully!')),
+                                              );}
+                                          },
+                                          child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFFB1C9EF),
+                                          ),
+                                        ),
+                                      ],
+                                    )
                                 );
 
                               },
