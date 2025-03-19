@@ -999,20 +999,64 @@ class ClassDatabase{
               'CREATE TABLE class (cid INTEGER PRIMARY KEY AUTOINCREMENT ,'
                   'name TEXT NOT NULL,'
                   'speciality TEXT NOT NULL,'
-                  'level TEXT NOT NULL,'
+                  'level INTEGER  NOT NULL,'
                   'year TEXT NOT NULL,'
               ')'
           );
           await db.execute(
-              'CREATE TABLE group (gid INTEGER PRIMARY KEY AUTOINCREMENT ,'
-                  'number INTEGER NOT NULL,'
+              'CREATE TABLE group (gid INTEGER AUTOINCREMENT ,'
                   'speciality TEXT NOT NULL,'
-                  'level TEXT NOT NULL,'
+                  'level INTEGER NOT NULL,'
+                  'PRIMARY KEY (number, speciality)'
               ')'
           );
-
+          await db.execute(
+              'CREATE TABLE student(sid INTEGER PRIMARY KEY AUTOINCREMENT ,'
+                  'finame TEXT NOT NULL,'
+                  'famname TEXT NOT NULL'
+                  'speciality TEXT NOT NULL,'
+                  'level INTEGER NOT NULL,'
+                  'group INTEGER NOT NULL,'
+                  'FOREIGN KEY(group, speciality) REFERENCES group(number, speciality)'
+              ')'
+          );
         }
     );
   }
+  Future<void> insertClass(String name,String Speciality,int level,String year)
+  async{
+     final db = await database;
+     final commandId = await db.insert(
+        'class',{
+        'name' : name,
+        'speciality' : Speciality ,
+        'level' : level,
+        'year' : year
+        }
+     );
+  }
+  Future<void> insertgroup(String Speciality,int level) async {
+    final db = await database;
+    final commandId = await db.insert(
+      'group',{
+        'speciality' : Speciality ,
+        'level' : level,
+      }
+    );
+  }
+  Future<void> insertstudent(String firstname , String famillyname ,String
+    Speciality,int level , int group) async {
+    final db = await database;
+    final commandId = await db.insert(
+        'student',{
+          'finame':firstname,
+          'faname' : famillyname,
+          'speciality' : Speciality ,
+          'level' : level,
+          'group' : group
+        }
+    );
+  }
+
 }
 
