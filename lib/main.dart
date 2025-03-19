@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 void main() {
   runApp(
@@ -26,7 +28,7 @@ class firstPageState extends State<firstPage> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 3), () {
-      Navigator.pushNamed(context, '/');
+      Navigator.pushNamed(context as BuildContext, '/');
     });
   }
 
@@ -976,3 +978,41 @@ class _classInfo extends State<classInfo>{
     );
   }
 }
+class ClassDatabase{
+  static final ClassDatabase _instance = ClassDatabase._internal();
+  factory ClassDatabase() => _instance;
+  ClassDatabase._internal();
+  Database ? _database;
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+  Future<Database> _initDatabase() async{
+    var databasesPath = await getDatabasesPath();
+    String path = join(databasesPath, 'p.db');
+    return await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          await db.execute(
+              'CREATE TABLE class (cid INTEGER PRIMARY KEY AUTOINCREMENT ,'
+                  'name TEXT NOT NULL,'
+                  'speciality TEXT NOT NULL,'
+                  'level TEXT NOT NULL,'
+                  'year TEXT NOT NULL,'
+              ')'
+          );
+          await db.execute(
+              'CREATE TABLE group (gid INTEGER PRIMARY KEY AUTOINCREMENT ,'
+                  'number INTEGER NOT NULL,'
+                  'speciality TEXT NOT NULL,'
+                  'level TEXT NOT NULL,'
+              ')'
+          );
+
+        }
+    );
+  }
+}
+
