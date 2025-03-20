@@ -972,8 +972,18 @@ class _homePage extends State<HomePage>{
 class classInfo extends StatefulWidget{
   _classInfo createState() =>  _classInfo();
 }
-class _classInfo extends State<classInfo>{
+class _classInfo extends State<classInfo> {
   TextEditingController searchController=TextEditingController();
+  final dbc= Dtabase();
+  Future<List<Map<String, dynamic>>> getClass()async {
+    List<Map<String, dynamic>> classes = await dbc.getClasses();
+    for (var classe in classes) {
+      print('ID: ${classe['cid']}, Name: ${classe['name']}, '
+          'Speciality: ${classe['speciality']}, Level: ${classe['level']}, Year: ${classe['year']}');
+    }
+    return classes;
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1119,7 +1129,13 @@ class Dtabase{
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+  //get
+  Future<List<Map<String, dynamic>>> getClasses() async {
+    final db = await database;
+    return await db.query('class');
+  }
 
+  //delete
   Future<void> deleteClass(int cid) async {
     final db = await database;
     await db.delete(
