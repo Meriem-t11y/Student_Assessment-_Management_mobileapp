@@ -9,7 +9,7 @@ void main() {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute:'/' ,
+      initialRoute:'/3' ,
       routes: {
         '/1h': (context) => firstPage(),
         '/': (context) =>HomePage(),
@@ -52,7 +52,10 @@ class HomePage extends StatefulWidget{
 class _homePage extends State<HomePage>{
   TextEditingController searchcontroller=TextEditingController() ,
       nameContoller=TextEditingController(),
+      finameContoller=TextEditingController(),
+      fanameContoller=TextEditingController(),
       yearController=TextEditingController();
+  int? group;
   String? level ,speciality;
   final _formKey = GlobalKey<FormState>();
   Widget build(BuildContext context) {
@@ -192,7 +195,7 @@ class _homePage extends State<HomePage>{
                                             labelText: 'Level',
                                             border: OutlineInputBorder(),
                                           ),
-                                          items: ['1st ', '2nd', '3rd']
+                                          items: ['1' , '2', '3']
                                               .map((String value) => DropdownMenuItem<String>(
                                             value: value,
                                             child: Text(value),
@@ -231,6 +234,8 @@ class _homePage extends State<HomePage>{
                                   ElevatedButton(
                                     onPressed: () {
                                       if(_formKey.currentState!.validate()){
+                                         final dbc=Dtabase();
+                                         dbc.insertClass(nameContoller.text, speciality!, int.parse(level!), yearController.text);
                                         Navigator.pop(context);
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(content: Text('The class was create seccefully!')),
@@ -324,7 +329,7 @@ class _homePage extends State<HomePage>{
                                           labelText: 'Level',
                                           border: OutlineInputBorder(),
                                         ),
-                                        items: ['1st', '2nd', '3rd']
+                                        items: ['1', '2', '3']
                                             .map((String value) => DropdownMenuItem<String>(
                                           value: value,
                                           child: Text(value),
@@ -406,6 +411,8 @@ class _homePage extends State<HomePage>{
                                 ElevatedButton(
                                   onPressed: () {
                                     if (_formKey.currentState!.validate()) {
+                                      final dbg=Dtabase();
+                                      dbg.insertGroup(speciality!, int.parse(level!));
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('The group was created successfully!')),
@@ -474,7 +481,7 @@ class _homePage extends State<HomePage>{
                                             labelText: 'Familly Name*',
                                             border: OutlineInputBorder(),
                                           ),
-                                          controller:nameContoller ,
+                                          controller:fanameContoller ,
                                           validator: (value){
                                             if(value==null|| value.isEmpty){
                                               return "you must fill student Familly name";
@@ -487,7 +494,7 @@ class _homePage extends State<HomePage>{
                                             labelText: 'First Name*',
                                             border: OutlineInputBorder(),
                                           ),
-                                          controller:nameContoller ,
+                                          controller:finameContoller ,
                                           validator: (value){
                                             if(value==null|| value.isEmpty){
                                               return "you must fill student first name";
@@ -520,7 +527,7 @@ class _homePage extends State<HomePage>{
                                             labelText: 'Level',
                                             border: OutlineInputBorder(),
                                           ),
-                                          items: ['1st ', '2nd', '3rd']
+                                          items: ['1 ', '2', '3']
                                               .map((String value) => DropdownMenuItem<String>(
                                             value: value,
                                             child: Text(value),
@@ -548,7 +555,7 @@ class _homePage extends State<HomePage>{
                                           )
                                           ).toList(),
                                           onChanged: (value) {
-                                            level=value;
+                                            group=int.parse(value!);
                                           },
                                           validator: (value){
                                             if( value==null || value.isEmpty){
@@ -569,6 +576,9 @@ class _homePage extends State<HomePage>{
                                   ElevatedButton(
                                     onPressed: () {
                                       if(_formKey.currentState!.validate()){
+                                        final sdb=Dtabase() ;
+                                        sdb.insertStudent(finameContoller.text,
+                                            fanameContoller.text, speciality!,int.parse(level!) , group!);
                                         Navigator.pop(context);
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(content: Text('The class was create seccefully!')),
@@ -963,11 +973,59 @@ class classInfo extends StatefulWidget{
   _classInfo createState() =>  _classInfo();
 }
 class _classInfo extends State<classInfo>{
-
+  TextEditingController searchController=TextEditingController();
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("My class"),
+            elevation: 4,
+            backgroundColor: Color(0xFF18185C),
+            titleSpacing: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.assignment,
+                color: Color(0xFFB1C9EF),
+                size: 28, // Agrandir l'icône
+              ),
+            ),
+            title:Column(children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFF2E2E6E),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TextField(
+                  controller: searchController,
+                  keyboardType: TextInputType.text,
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Search...',
+                    hintStyle: TextStyle(color: Color(0xFFB1C9EF)), // Couleur du texte d'indice
+                    prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)), // Icône de recherche
+                    border: InputBorder.none, // Pas de bordure
+                    contentPadding: EdgeInsets.all(12), // Espacement intérieur
+                  ),
+                ),
+              ),
+            ],),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
+            onSelected: (value) {
+              print('Selected: $value');
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                value: 'name',
+                child: Text('Filter by Name'),
+              ),
+              PopupMenuItem(
+                value: 'level',
+                child: Text('Filter by Level'),
+              ),
+            ],
+          ),
+        ],
       ),
         body:Form(child: Column(
           children: [
@@ -978,10 +1036,10 @@ class _classInfo extends State<classInfo>{
     );
   }
 }
-class ClassDatabase{
-  static final ClassDatabase _instance = ClassDatabase._internal();
-  factory ClassDatabase() => _instance;
-  ClassDatabase._internal();
+class Dtabase{
+  static final Dtabase _instance = Dtabase._internal();
+  factory Dtabase() => _instance;
+  Dtabase._internal();
   Database ? _database;
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -1023,40 +1081,70 @@ class ClassDatabase{
         }
     );
   }
-  Future<void> insertClass(String name,String Speciality,int level,String year)
-  async{
-     final db = await database;
-     final commandId = await db.insert(
-        'class',{
-        'name' : name,
-        'speciality' : Speciality ,
-        'level' : level,
-        'year' : year
-        }
-     );
-  }
-  Future<void> insertgroup(String Speciality,int level) async {
+  Future<void> insertClass(String name, String speciality, int level, String year) async {
     final db = await database;
-    final commandId = await db.insert(
-      'group',{
-        'speciality' : Speciality ,
-        'level' : level,
-      }
+    await db.insert(
+      'class',
+      {
+        'name': name,
+        'speciality': speciality,
+        'level': level,
+        'year': year,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
-  Future<void> insertstudent(String firstname , String famillyname ,String
-    Speciality,int level , int group) async {
+  Future<void> insertGroup(String speciality, int level) async {
     final db = await database;
-    final commandId = await db.insert(
-        'student',{
-          'finame':firstname,
-          'faname' : famillyname,
-          'speciality' : Speciality ,
-          'level' : level,
-          'group' : group
-        }
+    await db.insert(
+      'group',
+      {
+        'speciality': speciality,
+        'level': level,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+  Future<void> insertStudent(String finame, String famname, String speciality, int level, int group) async {
+    final db = await database;
+    await db.insert(
+      'student',
+      {
+        'finame': finame,
+        'famname': famname,
+        'speciality': speciality,
+        'level': level,
+        'group': group,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteClass(int cid) async {
+    final db = await database;
+    await db.delete(
+      'class',
+      where: 'cid = ?',
+      whereArgs: [cid],
+    );
+  }
+  Future<void> deleteGroup(int gid, String speciality, int level) async {
+    final db = await database;
+    await db.delete(
+      'group',
+      where: 'gid = ? AND speciality = ? AND level = ?',
+      whereArgs: [gid, speciality, level],
+    );
+  }
+  Future<void> deleteStudent(String finame, String famname, int group, String speciality) async {
+    final db = await database;
+    await db.delete(
+      'student',
+      where: 'finame = ? AND famname = ? AND group = ? AND speciality = ?',
+      whereArgs: [finame, famname, group, speciality],
+    );
+  }
+
 
 }
 
