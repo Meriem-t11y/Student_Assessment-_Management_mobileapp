@@ -57,6 +57,7 @@ class _homePage extends State<HomePage>{
       yearController=TextEditingController();
   int? group;
   String? level ,speciality;
+
   final _formKey = GlobalKey<FormState>();
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,7 +152,7 @@ class _homePage extends State<HomePage>{
                               builder: (context) => AlertDialog(
                                 backgroundColor: Color(0xFFD5DEEF ),
                                 title: Text('Enter Class Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
-                                content: SingleChildScrollView( // Pour éviter le débordement
+                                content: SingleChildScrollView(
                                   child: Form(
                                     key:_formKey ,
                                     child: Column(
@@ -974,14 +975,18 @@ class classInfo extends StatefulWidget{
 }
 class _classInfo extends State<classInfo> {
   TextEditingController searchController=TextEditingController();
-  final dbc= Dtabase();
-  Future<List<Map<String, dynamic>>> getClass()async {
-    List<Map<String, dynamic>> classes = await dbc.getClasses();
-    for (var classe in classes) {
-      print('ID: ${classe['cid']}, Name: ${classe['name']}, '
-          'Speciality: ${classe['speciality']}, Level: ${classe['level']}, Year: ${classe['year']}');
-    }
-    return classes;
+  final dbc=Dtabase();
+  List<Map<String, dynamic>> Lclass = [];
+
+  void initState(){
+    super.initState();
+    loadClasses();
+  }
+  Future<void> loadClasses() async {
+    final classes = await dbc.getClasses();
+    setState(() {
+      Lclass=classes;
+    });
   }
 
   Widget build(BuildContext context) {
@@ -998,27 +1003,40 @@ class _classInfo extends State<classInfo> {
                 size: 28, // Agrandir l'icône
               ),
             ),
-            title:Column(children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xFF2E2E6E),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextField(
-                  controller: searchController,
-                  keyboardType: TextInputType.text,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search...',
-                    hintStyle: TextStyle(color: Color(0xFFB1C9EF)), // Couleur du texte d'indice
-                    prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)), // Icône de recherche
-                    border: InputBorder.none, // Pas de bordure
-                    contentPadding: EdgeInsets.all(12), // Espacement intérieur
-                  ),
-                ),
-              ),
-            ],),
+            title: Text("MY CLASSES" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 14),),
         actions: [
+          IconButton(onPressed: (){
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  contentPadding: EdgeInsets.all(20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  backgroundColor: Color(0xFF2E2E6E),
+                  content: Container(
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2E2E6E),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      keyboardType: TextInputType.text,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Search...',
+                        hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                        prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(12),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }, icon: Icon(Icons.search)),
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
             onSelected: (value) {
@@ -1037,12 +1055,46 @@ class _classInfo extends State<classInfo> {
           ),
         ],
       ),
-        body:Form(child: Column(
-          children: [
-
-
-          ],
-        ))
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
+              childAspectRatio: 1.2,
+            ),
+            itemCount: Lclass.length,
+            itemBuilder: (context, index) {
+              final classe = Lclass[index];
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Name: ${classe['name']}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 4),
+                      Text('Speciality: ${classe['speciality']}'),
+                      SizedBox(height: 4),
+                      Text('Level: ${classe['level']}'),
+                      SizedBox(height: 4),
+                      Text('Year: ${classe['year']}'),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
     );
   }
 }
