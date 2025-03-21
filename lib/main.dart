@@ -14,7 +14,8 @@ void main() {
       routes: {
         '/1h': (context) => firstPage(),
         '/': (context) =>HomePage(),
-        '/3' : (context) =>classInfo()
+        '/3' : (context) =>classInfo(),
+        '/4' :(context) =>groupInfo(),
       },
     )
   );
@@ -52,6 +53,7 @@ class HomePage extends StatefulWidget{
 
 class _homePage extends State<HomePage>{
   TextEditingController searchcontroller=TextEditingController() ,
+      numberController=TextEditingController(),
       nameContoller=TextEditingController(),
       finameContoller=TextEditingController(),
       fanameContoller=TextEditingController(),
@@ -361,6 +363,7 @@ class _homePage extends State<HomePage>{
                                       ),
                                       SizedBox(height: 8),
                                       TextFormField(
+                                        controller: numberController,
                                         decoration: InputDecoration(
                                           labelText: 'Number*',
                                           border: OutlineInputBorder(),
@@ -426,11 +429,15 @@ class _homePage extends State<HomePage>{
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
                                       final dbc = Dtabase();
-                                      bool success = await dbc.insertGroup(speciality!, int.parse(level!));
+                                      bool success = await dbc.insertGroup(
+                                          speciality!,
+                                          int.parse(level!),
+                                          int.parse(numberController.text));
                                       if (success) {
                                         Navigator.pop(context);
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('The group was created successfully!')),
+                                          SnackBar(
+                                              content: Text('The group was created successfully!')),
                                         );
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
@@ -950,6 +957,7 @@ class _homePage extends State<HomePage>{
                 SizedBox(width: 75),
                 InkWell(
                   onTap: () {
+                    Navigator.pushNamed(context as BuildContext, '/4');
                     print("Texte cliqué !");
                   },
                   child: Padding(
@@ -1127,7 +1135,242 @@ class _classInfo extends State<classInfo> {
     );
   }
 }
-class Dtabase{
+
+class groupInfo extends StatefulWidget{
+  _groupInfo createState() =>  _groupInfo();
+}
+class _groupInfo extends State<groupInfo> {
+  TextEditingController searchController=TextEditingController();
+  final dbc=Dtabase();
+  List<Map<String, dynamic>> Lclass = [];
+  void initState(){
+    super.initState();
+    loadClasses();
+  }
+  Future<void> loadClasses() async {
+    final groups = await dbc.getGroup();
+    setState(() {
+      Lclass=groups;
+    });
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          elevation: 4,
+          backgroundColor: Color(0xFF18185C),
+          titleSpacing: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.assignment,
+              color: Color(0xFFB1C9EF),
+              size: 28, // Agrandir l'icône
+            ),
+          ),
+          title: Text("MY Groups" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 14),),
+          actions: [
+            IconButton(onPressed: (){
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    contentPadding: EdgeInsets.all(20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    backgroundColor: Color(0xFF2E2E6E),
+                    content: Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF2E2E6E),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        keyboardType: TextInputType.text,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search by level ',
+                          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(12),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }, icon: Icon(Icons.search)),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
+              onSelected: (value) {
+                print('Selected: $value');
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  value: 'name',
+                  child: Text('Filter by Name'),
+                ),
+                PopupMenuItem(
+                  value: 'level',
+                  child: Text('Filter by Level'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
+              childAspectRatio: 1.2,
+            ),
+            itemCount: Lclass.length,
+            itemBuilder: (context, index) {
+              final classe = Lclass[index];
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Speciality: ${classe['speciality']}'),
+                      SizedBox(height: 4),
+                      Text('Level: ${classe['level']}'),
+                      SizedBox(height: 4),
+                      Text('Year: ${classe['group_id']}'),
+                      SizedBox(height: 4),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 4,
+        backgroundColor: Color(0xFF18185C),
+        titleSpacing: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            Icons.assignment,
+            color: Color(0xFFB1C9EF),
+            size: 28, // Agrandir l'icône
+          ),
+        ),
+        title: Text("MY GROUPS" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 16 , fontWeight: FontWeight.bold),),
+        actions: [
+          IconButton(onPressed: (){
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  contentPadding: EdgeInsets.all(20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  backgroundColor: Color(0xFF2E2E6E),
+                  content: Container(
+                    decoration: BoxDecoration(
+                      color: Color(0xFF2E2E6E),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      keyboardType: TextInputType.text,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Search...',
+                        hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                        prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(12),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }, icon: Icon(Icons.search)),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
+            onSelected: (value) {
+              print('Selected: $value');
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                value: 'Speciality',
+                child: Text('Filter by Speciality'),
+              ),
+              PopupMenuItem(
+                value: 'level',
+                child: Text('Filter by Level'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: Lclass.length,
+          itemBuilder: (context, index) {
+            final classe = Lclass[index];
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Speciality: ${classe['speciality']}' ,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                    Text('Level: ${classe['level']}' ,
+                      style: TextStyle(fontWeight: FontWeight.bold),),
+                    SizedBox(height: 4),
+                    Text(
+                      'Number: ${classe['gid']}',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
   factory Dtabase() => _instance;
   Dtabase._internal();
@@ -1141,10 +1384,10 @@ class Dtabase{
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'aa.db');
+    String path = join(databasesPath, 'db1.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (Database db, int version) async {
         // Table "class"
         await db.execute(
@@ -1157,15 +1400,17 @@ class Dtabase{
                 ')'
         );
 
-        // Table "group"
+        // Table "group_table"
         await db.execute(
             'CREATE TABLE "group" ('
                 'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'number INTEGER, '
                 'speciality TEXT NOT NULL, '
                 'level INTEGER NOT NULL'
                 ')'
         );
 
+        // Table "student"
         await db.execute(
             'CREATE TABLE student ('
                 'sid INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -1178,9 +1423,24 @@ class Dtabase{
                 ')'
         );
       },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+              'CREATE TABLE IF NOT EXISTS "groups" ('
+                  'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                  'number INTEGER, '
+                  'speciality TEXT NOT NULL, '
+                  'level INTEGER NOT NULL'
+                  ')'
+          );
+        }
+      },
+
     );
+
   }
 
+  // Insert class
   Future<bool> insertClass(String name, String speciality, int level, String year) async {
     try {
       final db = await database;
@@ -1195,26 +1455,31 @@ class Dtabase{
       );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion : $e');
+      print('Erreur lors de l\'insertion de la classe : $e');
       return false;
     }
   }
 
-  Future<bool> insertGroup(String speciality, int level) async {
-    try{
-    final db = await database;
-    await db.insert(
-      'group',
-      {
-        'speciality': speciality,
-        'level': level,
-      },
-    ); return true;
-  } catch (e) {
-  print('Erreur lors de l\'insertion : $e');
-  return false;
+  // Insert group
+  Future<bool> insertGroup(String speciality, int level, int number) async {
+    try {
+      final db = await database;
+      await db.insert(
+        'groups',
+        {
+          'number': number,
+          'speciality': speciality,
+          'level': level,
+        },
+      );
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion du groupe : $e');
+      return false;
+    }
   }
-  }
+
+  // Insert student
   Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
     try {
       final db = await database;
@@ -1230,17 +1495,24 @@ class Dtabase{
       );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion : $e');
+      print('Erreur lors de l\'insertion de l\'étudiant : $e');
       return false;
     }
   }
-  //get
+
+  // Get classes
   Future<List<Map<String, dynamic>>> getClasses() async {
     final db = await database;
     return await db.query('class');
   }
 
-  //delete
+  // Get groups
+  Future<List<Map<String, dynamic>>> getGroup() async {
+    final db = await database;
+    return await db.query('groups');
+  }
+
+  // Delete class
   Future<void> deleteClass(int cid) async {
     final db = await database;
     await db.delete(
@@ -1249,22 +1521,26 @@ class Dtabase{
       whereArgs: [cid],
     );
   }
+
+  // Delete group
   Future<void> deleteGroup(int gid, String speciality, int level) async {
     final db = await database;
     await db.delete(
-      'group',
+      'group_table',
       where: 'gid = ? AND speciality = ? AND level = ?',
       whereArgs: [gid, speciality, level],
     );
   }
-  Future<void> deleteStudent(String finame, String famname, int group, String speciality) async {
+
+  // Delete student
+  Future<void> deleteStudent(String finame, String famname, int groupId, String speciality) async {
     final db = await database;
     await db.delete(
       'student',
-      where: 'finame = ? AND famname = ? AND group = ? AND speciality = ?',
-      whereArgs: [finame, famname, group, speciality],
+      where: 'finame = ? AND famname = ? AND group_id = ? AND speciality = ?',
+      whereArgs: [finame, famname, groupId, speciality],
     );
   }
-
 }
+
 
