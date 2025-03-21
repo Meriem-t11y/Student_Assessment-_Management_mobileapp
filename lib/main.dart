@@ -7,7 +7,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 void main() {
-
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -235,23 +234,27 @@ class _homePage extends State<HomePage>{
                                     child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
                                   ),
                                   ElevatedButton(
-                          onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                          final dbc = Dtabase();
-                          bool success = await dbc.insertClass(nameContoller.text,speciality!,int.parse(level!),yearController.text);
+                                    onPressed: () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        final dbc = Dtabase();
+                                        bool success = await dbc.insertClass(
+                                            nameContoller.text
+                                            ,speciality!
+                                            ,int.parse(level!),
+                                            yearController.text);
 
-                          if (success) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('The class was created successfully!')),
-                          );
-                          } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: Failed to create class.')),
-                          );
-                          }
-                          }
-                          },
+                                        if (success) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('The class was created successfully!')),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Error: Failed to create class.')),
+                                          );
+                                        }
+                                      }
+                                    },
                                     child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
                                     style: ElevatedButton.styleFrom(
                                        backgroundColor: Color(0xFFB1C9EF),
@@ -420,14 +423,20 @@ class _homePage extends State<HomePage>{
                                   child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      final dbg=Dtabase();
-                                      dbg.insertGroup(speciality!, int.parse(level!));
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('The group was created successfully!')),
-                                      );
+                                      final dbc = Dtabase();
+                                      bool success = await dbc.insertGroup(speciality!, int.parse(level!));
+                                      if (success) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('The group was created successfully!')),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: Failed to create class.')),
+                                        );
+                                      }
                                     }
                                   },
                                   child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
@@ -585,16 +594,26 @@ class _homePage extends State<HomePage>{
                                     child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      if(_formKey.currentState!.validate()){
-                                        final sdb=Dtabase() ;
-                                        sdb.insertStudent(finameContoller.text,
-                                            fanameContoller.text, speciality!,int.parse(level!) , group!);
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('The class was create seccefully!')),
-                                        );}
-                                    },
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          final dbc = Dtabase();
+                                          bool success = await dbc.insertStudent(finameContoller.text,
+                                              fanameContoller.text,
+                                              speciality!,
+                                              int.parse(level!),
+                                              group!);
+                                          if (success) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('The group was created successfully!')),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error: Failed to create class.')),
+                                            );
+                                          }
+                                        }
+                                      },
                                     child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Color(0xFFB1C9EF),
@@ -1181,7 +1200,8 @@ class Dtabase{
     }
   }
 
-  Future<void> insertGroup(String speciality, int level) async {
+  Future<bool> insertGroup(String speciality, int level) async {
+    try{
     final db = await database;
     await db.insert(
       'group',
@@ -1189,22 +1209,30 @@ class Dtabase{
         'speciality': speciality,
         'level': level,
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    ); return true;
+  } catch (e) {
+  print('Erreur lors de l\'insertion : $e');
+  return false;
   }
-  Future<void> insertStudent(String finame, String famname, String speciality, int level, int group) async {
-    final db = await database;
-    await db.insert(
-      'student',
-      {
-        'finame': finame,
-        'famname': famname,
-        'speciality': speciality,
-        'level': level,
-        'group': group,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+  }
+  Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
+    try {
+      final db = await database;
+      await db.insert(
+        'student',
+        {
+          'finame': finame,
+          'famname': famname,
+          'speciality': speciality,
+          'level': level,
+          'group_id': group,
+        },
+      );
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion : $e');
+      return false;
+    }
   }
   //get
   Future<List<Map<String, dynamic>>> getClasses() async {
