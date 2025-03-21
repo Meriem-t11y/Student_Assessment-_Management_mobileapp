@@ -1355,7 +1355,7 @@ class _groupInfo extends State<groupInfo> {
                       style: TextStyle(fontWeight: FontWeight.bold),),
                     SizedBox(height: 4),
                     Text(
-                      'Number: ${classe['gid']}',
+                      'Number: ${classe['number']}',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4),
@@ -1384,10 +1384,10 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'db1.db');
+    String path = join(databasesPath, 'db3.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: (Database db, int version) async {
         // Table "class"
         await db.execute(
@@ -1423,19 +1423,6 @@ class Dtabase {
                 ')'
         );
       },
-      onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-              'CREATE TABLE IF NOT EXISTS "groups" ('
-                  'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                  'number INTEGER, '
-                  'speciality TEXT NOT NULL, '
-                  'level INTEGER NOT NULL'
-                  ')'
-          );
-        }
-      },
-
     );
 
   }
@@ -1465,7 +1452,7 @@ class Dtabase {
     try {
       final db = await database;
       await db.insert(
-        'groups',
+        'group',
         {
           'number': number,
           'speciality': speciality,
@@ -1509,8 +1496,9 @@ class Dtabase {
   // Get groups
   Future<List<Map<String, dynamic>>> getGroup() async {
     final db = await database;
-    return await db.query('groups');
+    return await db.query('group');
   }
+
 
   // Delete class
   Future<void> deleteClass(int cid) async {
