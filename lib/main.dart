@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute:'/3' ,
+      initialRoute:'/' ,
       routes: {
         '/1h': (context) => firstPage(),
         '/': (context) =>HomePage(),
@@ -57,8 +60,8 @@ class _homePage extends State<HomePage>{
       yearController=TextEditingController();
   int? group;
   String? level ,speciality;
-
   final _formKey = GlobalKey<FormState>();
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:
@@ -233,15 +236,23 @@ class _homePage extends State<HomePage>{
                                     child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      if(_formKey.currentState!.validate()){
-                                         final dbc=Dtabase();
-                                         dbc.insertClass(nameContoller.text, speciality!, int.parse(level!), yearController.text);
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('The class was create seccefully!')),
-                                        );}
-                                    },
+                          onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                          final dbc = Dtabase();
+                          bool success = await dbc.insertClass(nameContoller.text,speciality!,int.parse(level!),yearController.text);
+
+                          if (success) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('The class was created successfully!')),
+                          );
+                          } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: Failed to create class.')),
+                          );
+                          }
+                          }
+                          },
                                     child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
                                     style: ElevatedButton.styleFrom(
                                        backgroundColor: Color(0xFFB1C9EF),
@@ -614,7 +625,7 @@ class _homePage extends State<HomePage>{
               children: [
                 // Espacement externe avant le texte "Functionalities"
                 Padding(
-                  padding: EdgeInsets.all(8.0), // Espacement interne autour du texte
+                  padding: EdgeInsets.all(8.0),
                   child: Text(
                     "My Class",
                     textAlign: TextAlign.start,
@@ -629,6 +640,7 @@ class _homePage extends State<HomePage>{
                 SizedBox(width: 75),
                 InkWell(
                   onTap: () {
+                    Navigator.pushNamed(context as BuildContext, '/3');
                     print("Texte cliqué !");
                   },
                   child: Padding(
@@ -977,7 +989,6 @@ class _classInfo extends State<classInfo> {
   TextEditingController searchController=TextEditingController();
   final dbc=Dtabase();
   List<Map<String, dynamic>> Lclass = [];
-
   void initState(){
     super.initState();
     loadClasses();
@@ -1102,60 +1113,75 @@ class Dtabase{
   static final Dtabase _instance = Dtabase._internal();
   factory Dtabase() => _instance;
   Dtabase._internal();
-  Database ? _database;
+  Database? _database;
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
-  Future<Database> _initDatabase() async{
+
+  Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'p.db');
+    String path = join(databasesPath, 'aa.db');
     return await openDatabase(
-        path,
-        version: 1,
-        onCreate: (Database db, int version) async {
-          await db.execute(
-              'CREATE TABLE class (cid INTEGER PRIMARY KEY AUTOINCREMENT ,'
-                  'name TEXT NOT NULL,'
-                  'speciality TEXT NOT NULL,'
-                  'level INTEGER  NOT NULL,'
-                  'year TEXT NOT NULL,'
-              ')'
-          );
-          await db.execute(
-              'CREATE TABLE group (gid INTEGER AUTOINCREMENT ,'
-                  'speciality TEXT NOT NULL,'
-                  'level INTEGER NOT NULL,'
-                  'PRIMARY KEY (number, speciality)'
-              ')'
-          );
-          await db.execute(
-              'CREATE TABLE student(sid INTEGER PRIMARY KEY AUTOINCREMENT ,'
-                  'finame TEXT NOT NULL,'
-                  'famname TEXT NOT NULL'
-                  'speciality TEXT NOT NULL,'
-                  'level INTEGER NOT NULL,'
-                  'group INTEGER NOT NULL,'
-                  'FOREIGN KEY(group, speciality) REFERENCES group(number, speciality)'
-              ')'
-          );
-        }
-    );
-  }
-  Future<void> insertClass(String name, String speciality, int level, String year) async {
-    final db = await database;
-    await db.insert(
-      'class',
-      {
-        'name': name,
-        'speciality': speciality,
-        'level': level,
-        'year': year,
+      path,
+      version: 1,
+      onCreate: (Database db, int version) async {
+        // Table "class"
+        await db.execute(
+            'CREATE TABLE class ('
+                'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'name TEXT NOT NULL, '
+                'speciality TEXT NOT NULL, '
+                'level INTEGER NOT NULL, '
+                'year TEXT NOT NULL'
+                ')'
+        );
+
+        // Table "group"
+        await db.execute(
+            'CREATE TABLE "group" ('
+                'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'speciality TEXT NOT NULL, '
+                'level INTEGER NOT NULL'
+                ')'
+        );
+
+        await db.execute(
+            'CREATE TABLE student ('
+                'sid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'finame TEXT NOT NULL, '
+                'famname TEXT NOT NULL, '
+                'speciality TEXT NOT NULL, '
+                'level INTEGER NOT NULL, '
+                'group_id INTEGER NOT NULL, '
+                'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
+                ')'
+        );
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
+  Future<bool> insertClass(String name, String speciality, int level, String year) async {
+    try {
+      final db = await database;
+      await db.insert(
+        'class',
+        {
+          'name': name,
+          'speciality': speciality,
+          'level': level,
+          'year': year,
+        },
+      );
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion : $e');
+      return false;
+    }
+  }
+
   Future<void> insertGroup(String speciality, int level) async {
     final db = await database;
     await db.insert(
@@ -1212,7 +1238,6 @@ class Dtabase{
       whereArgs: [finame, famname, group, speciality],
     );
   }
-
 
 }
 
