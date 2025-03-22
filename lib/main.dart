@@ -58,8 +58,9 @@ class _homePage extends State<HomePage>{
       finameContoller=TextEditingController(),
       fanameContoller=TextEditingController(),
       yearController=TextEditingController();
+
   int? group;
-  String? level ,speciality;
+  String? level ,speciality , year;
   final _formKey = GlobalKey<FormState>();
 
   Widget build(BuildContext context) {
@@ -151,119 +152,167 @@ class _homePage extends State<HomePage>{
                           ),
                           onPressed: () {
                             showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  backgroundColor: Color(0xFFD5DEEF ),
-                                  title: Text('Enter Class Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
-                                  content: SingleChildScrollView(
-                                    child: Form(
-                                      key:_formKey ,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          TextFormField(
-                                            decoration: InputDecoration(
-                                              labelText: 'Class Name*',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            controller:nameContoller ,
-                                            validator: (value){
-                                              if(value==null|| value.isEmpty){
-                                                return "you must fill class name";
-                                              }
-                                            },
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Color(0xFFD5DEEF),
+                                title: Text(
+                                  'Enter Class Informations',
+                                  style: TextStyle(color: Color(0xFF18185C)),
+                                ),
+                                content: SingleChildScrollView(
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Champ pour le nom de la classe
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Class Name*',
+                                            border: OutlineInputBorder(),
                                           ),
-                                          SizedBox(height: 8),
-                                          DropdownButtonFormField<String>(
-                                            decoration: InputDecoration(
-                                              labelText: 'Speciality',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            items: ['Engineer', 'Licence', 'Master'].
-                                            map((String value) => DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            )).toList(),
-                                            onChanged: (value) {
-                                              speciality=value;
-                                            },
-                                            validator: (value){
-                                              if( value==null || value.isEmpty){
-                                                return " you must fill level";
-                                              }
-                                            },
+                                          controller: nameContoller,
+                                          validator: (value) {
+                                            if (value == null || value.isEmpty) {
+                                              return "you must fill class name";
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+
+                                        // Champ pour la spécialité
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Speciality',
+                                            border: OutlineInputBorder(),
                                           ),
-                                          SizedBox(height: 8),
-                                          DropdownButtonFormField<String>(
-                                            decoration: InputDecoration(
-                                              labelText: 'Level',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            items: ['1' , '2', '3']
-                                                .map((String value) => DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            )
-                                            ).toList(),
-                                            onChanged: (value) {
-                                              level=value;
-                                            },
-                                            validator: (value){
-                                              if( value==null || value.isEmpty){
-                                                return " you must fill level";
-                                              }
-                                            },
+                                          items: ['Engineer', 'Licence', 'Master']
+                                              .map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          ))
+                                              .toList(),
+                                          onChanged: (value) {
+                                            speciality = value;
+                                          },
+                                          validator: (value) {
+                                            if (value == null || value.isEmpty) {
+                                              return "you must fill speciality";
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+
+                                        // Champ pour le niveau
+                                        DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            labelText: 'Level',
+                                            border: OutlineInputBorder(),
                                           ),
-                                          SizedBox(height: 8),
-                                          TextFormField(
-                                            decoration: InputDecoration(
-                                              labelText: 'Year*',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            validator: (value){
-                                              if(value==null|| value.isEmpty){
-                                                return "you must fill year";
-                                              }
-                                            },
-                                          )
-                                        ],
-                                      ),
+                                          items: ['1', '2', '3']
+                                              .map((String value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          ))
+                                              .toList(),
+                                          onChanged: (value) {
+                                            level = value;
+                                          },
+                                          validator: (value) {
+                                            if (value == null || value.isEmpty) {
+                                              return "you must fill level";
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+
+                                        // Champ avec autocomplétion pour l'année
+                                        Autocomplete<String>(
+                                          optionsBuilder: (TextEditingValue textEditingValue) {
+                                            List<String> yearOptions = [
+                                              '2024-2025',
+                                            ];
+                                            return yearOptions.where((String option) {
+                                              return option
+                                                  .toLowerCase()
+                                                  .contains(textEditingValue.text.toLowerCase());
+                                            }).toList();
+                                          },
+                                          onSelected: (String selection) {
+                                            year = selection;
+                                          },
+                                          fieldViewBuilder: (BuildContext context,
+                                              TextEditingController textEditingController,
+                                              FocusNode focusNode,
+                                              VoidCallback onFieldSubmitted) {
+                                            yearController = textEditingController;
+                                            return TextFormField(
+                                              controller: textEditingController,
+                                              focusNode: focusNode,
+                                              decoration: InputDecoration(
+                                                labelText: 'Year*',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return "you must fill year";
+                                                }
+                                                return null;
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
+                                ),
+                                actions: [
+                                  // Bouton pour annuler
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text(
+                                      'Annuler',
+                                      style: TextStyle(color: Color(0xFF18185C)),
                                     ),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        if (_formKey.currentState!.validate()) {
-                                          final dbc = Dtabase();
-                                          bool success = await dbc.insertClass(
-                                              nameContoller.text
-                                              ,speciality!
-                                              ,int.parse(level!),
-                                              yearController.text);
+                                  ),
 
-                                          if (success) {
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('The class was created successfully!')),
-                                            );
-                                          } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Error: Failed to create class.')),
-                                            );
-                                          }
+                                  // Bouton pour valider
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        final dbc = Dtabase();
+                                        bool success = await dbc.insertClass(
+                                          nameContoller.text,
+                                          speciality!,
+                                          int.parse(level!),
+                                          year!,
+                                        );
+
+                                        if (success) {
+                                          Navigator.pop(context);
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('The class was created successfully!')),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Error: Failed to create class.')),
+                                          );
                                         }
-                                      },
-                                      child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFB1C9EF),
-                                      ),
+                                      }
+                                    },
+                                    child: Text(
+                                      'Valider',
+                                      style: TextStyle(color: Color(0xFF18185C)),
                                     ),
-                                  ],
-                                )
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFFB1C9EF),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
