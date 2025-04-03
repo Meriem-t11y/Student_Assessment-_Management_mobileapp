@@ -907,16 +907,19 @@ class classInfo extends StatefulWidget{
 class _classInfo extends State<classInfo> {
   TextEditingController searchController=TextEditingController();
   final dbc=Dtabase();
+  List<Map<String, dynamic>> filteredClasses = [];
   List<Map<String, dynamic>> lclass = [];
   void initState(){
     super.initState();
     _loadClasses();
+    searchController.addListener(_filterClasses);
   }
   Future<void> _loadClasses() async {
     final db = Dtabase();
     final data = await db.getClasses();
     setState(() {
       lclass = List.from(data);
+      filteredClasses = data;
     });
   }
   void _showDeleteDialog(BuildContext context, int cid) {
@@ -1051,6 +1054,16 @@ class _classInfo extends State<classInfo> {
       },
     );
   }
+  void _filterClasses() {
+    String query = searchController.text.toLowerCase();
+    setState(() {
+      filteredClasses = lclass.where((classe) {
+        return classe['name'].toLowerCase().contains(query) ||
+            classe['speciality'].toLowerCase().contains(query) ||
+            classe['level'].toString().contains(query);
+      }).toList();
+    });
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1089,7 +1102,7 @@ class _classInfo extends State<classInfo> {
                       decoration: InputDecoration(
                         hintText: 'Search...',
                         hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
-                        prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                        prefixIcon: IconButton(onPressed: (){Navigator.of(context).pop();},icon: Icon( Icons.search)),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.all(12),
                       ),
@@ -1141,9 +1154,9 @@ class _classInfo extends State<classInfo> {
             mainAxisSpacing: 8.0,
             childAspectRatio: 4/2,
           ),
-          itemCount: lclass.length,
+          itemCount: filteredClasses.length, // Utiliser la liste filtrée
           itemBuilder: (context, index) {
-            final classe = lclass[index];
+            final classe = filteredClasses[index];
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1160,7 +1173,7 @@ class _classInfo extends State<classInfo> {
                       children: [
                         Text(
                           'Name: ${classe['name']}',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF)),
                         ),
                         Row(
                           children: [
@@ -1187,11 +1200,14 @@ class _classInfo extends State<classInfo> {
                       ],
                     ),
                     SizedBox(height: 4),
-                    Text('Speciality: ${classe['speciality']}'),
+                    Text('Speciality: ${classe['speciality']}',
+                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
                     SizedBox(height: 4),
-                    Text('Level: ${classe['level']}'),
+                    Text('Level: ${classe['level']}',
+                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
                     SizedBox(height: 4),
-                    Text('Year: ${classe['year']}'),
+                    Text('Year: ${classe['year']}',
+                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
                   ],
                 ),
               ),
