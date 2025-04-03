@@ -62,18 +62,19 @@ class _homePage extends State<HomePage>{
   String? level ,speciality;
   final _formKey = GlobalKey<FormState>();
   final dbc=Dtabase();
-  List<Map<String, dynamic>> Lclass = [];
+  List<Map<String, dynamic>> lclass = [];
   void initState(){
     super.initState();
-    loadClasses();
+    _loadClasses();
   }
-  Future<void> loadClasses() async {
-    final classes = await dbc.getClasses();
+  Future<void> _loadClasses() async {
+    final db = Dtabase();
+    final data = await db.getClasses();
     setState(() {
-      Lclass=classes;
+      lclass = data;
     });
   }
-  final Map<int, Map<String, String>> items = {
+  final Map<int, Map< String , dynamic>> items = {
     0: {'title': 'Title 0', 'level': 'Level 0'},
     1: {'title': 'Title 1', 'level': 'Level 1'},
     2: {'title': 'Title 2', 'level': 'Level 2'},
@@ -730,7 +731,9 @@ class _homePage extends State<HomePage>{
                 ],
               ),
         Expanded(
-            child: GridView.builder(
+            child: lclass.isEmpty
+                ? Center(child: Text('add classe '))
+            :GridView.builder(
               scrollDirection: Axis.horizontal,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -738,9 +741,9 @@ class _homePage extends State<HomePage>{
                 mainAxisSpacing: 2.0,
                 childAspectRatio: 1 / 2.5,
               ),
-              itemCount: items.length, // Utilisation de la longueur de la map
+              itemCount: lclass.length,
               itemBuilder: (context, index) {
-                final item = items[index]!; // Récupère les valeurs à partir de la map
+                final item = lclass[index];
                 return Container(
                   decoration: BoxDecoration(
                     color: index.isEven ? Colors.blueAccent : Color(0xFF18185C),
@@ -904,16 +907,149 @@ class classInfo extends StatefulWidget{
 class _classInfo extends State<classInfo> {
   TextEditingController searchController=TextEditingController();
   final dbc=Dtabase();
-  List<Map<String, dynamic>> Lclass = [];
+  List<Map<String, dynamic>> lclass = [];
   void initState(){
     super.initState();
-    loadClasses();
+    _loadClasses();
   }
-  Future<void> loadClasses() async {
-    final classes = await dbc.getClasses();
+  Future<void> _loadClasses() async {
+    final db = Dtabase();
+    final data = await db.getClasses();
     setState(() {
-      Lclass=classes;
+      lclass = List.from(data);
     });
+  }
+  void _showDeleteDialog(BuildContext context, int cid) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Class"),
+          content: Text("Are you sure you want to delete this class?"),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Delete", style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                try {
+                  final db = Dtabase();
+                  await db.deleteClass(cid);
+                  setState(() {
+                    lclass = List.from(lclass)..removeWhere((classe) => classe['cid'] == cid);
+                  });
+                } catch (e) {
+                  print("Error: $e");
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _showUpdateDialog(BuildContext context, Map<String, dynamic> classe) {
+    TextEditingController nameController = TextEditingController(text: classe['name']);
+    TextEditingController specialityController = TextEditingController(text: classe['speciality']);
+    TextEditingController levelController = TextEditingController(text: classe['level'].toString());
+    TextEditingController yearController = TextEditingController(text: classe['year'].toString());
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Update Class"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: "Name"),
+              ),
+              TextField(
+                controller: specialityController,
+                decoration: InputDecoration(labelText: "Speciality"),
+              ),
+              TextField(
+                controller: levelController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Level"),
+              ),
+              TextField(
+                controller: yearController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Year"),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Update", style: TextStyle(color: Colors.green)),
+              onPressed: () async {
+                final db = Dtabase();
+                await db.updateClass(
+                  classe['cid'], // L'ID de la classe à mettre à jour
+                  nameController.text,
+                  specialityController.text,
+                  int.parse(levelController.text),
+                 yearController.text ,
+                );
+
+                _loadClasses(); // Recharger la liste après la mise à jour
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _showCommentDialog(BuildContext context, int cid) {
+    TextEditingController commentController = TextEditingController(); // Contrôleur pour le commentaire
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add Comment"),
+          content: TextField(
+            controller: commentController,
+            decoration: InputDecoration(
+              hintText: "Write your comment...",
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Add", style: TextStyle(color: Colors.green)),
+              onPressed: () async {
+                final db = Dtabase();
+                await db.addComment(cid, commentController.text); // Ajoute le commentaire à la base de données
+
+                _loadClasses(); // Recharge la liste des classes après l'ajout du commentaire
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget build(BuildContext context) {
@@ -986,14 +1122,14 @@ class _classInfo extends State<classInfo> {
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+            crossAxisCount: 1,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
-            childAspectRatio: 1.2,
+            childAspectRatio: 4/2,
           ),
-          itemCount: Lclass.length,
+          itemCount: lclass.length,
           itemBuilder: (context, index) {
-            final classe = Lclass[index];
+            final classe = lclass[index];
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1002,12 +1138,39 @@ class _classInfo extends State<classInfo> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Name: ${classe['name']}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Name: ${classe['name']}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.comment),
+                              onPressed: () {
+                                _showCommentDialog(context, classe['cid']);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                _showUpdateDialog(context, classe);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                _showDeleteDialog(context ,classe['cid']);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     SizedBox(height: 4),
                     Text('Speciality: ${classe['speciality']}'),
@@ -1019,6 +1182,7 @@ class _classInfo extends State<classInfo> {
                 ),
               ),
             );
+
           },
         ),
       ),
@@ -1276,7 +1440,7 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'db3.db');
+    String path = join(databasesPath, 'db5.db');
     return await openDatabase(
       path,
       version: 4,
@@ -1288,7 +1452,8 @@ class Dtabase {
                 'name TEXT NOT NULL, '
                 'speciality TEXT NOT NULL, '
                 'level INTEGER NOT NULL, '
-                'year TEXT NOT NULL'
+                'year TEXT NOT NULL ,'
+
                 ')'
         );
 
@@ -1314,6 +1479,7 @@ class Dtabase {
                 'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
                 ')'
         );
+
       },
     );
 
@@ -1423,4 +1589,31 @@ class Dtabase {
       whereArgs: [finame, famname, groupId, speciality],
     );
   }
+  Future<void> updateClass(int cid, String name, String speciality, int level, String year) async {
+    final db = await database;
+    await db.update(
+      'class',
+      {
+        'name': name,
+        'speciality': speciality,
+        'level': level,
+        'year': year,
+      },
+      where: 'cid = ?',
+      whereArgs: [cid],
+    );
+  }
+
+  Future<void> addComment(int cid, String comment) async {
+    final db = await database;
+    await db.update(
+      'classes',
+      {
+        'comment': comment,
+      },
+      where: 'cid = ?',
+      whereArgs: [cid],
+    );
+  }
+
 }
