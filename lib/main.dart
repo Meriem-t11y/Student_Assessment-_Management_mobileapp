@@ -1051,7 +1051,6 @@ class _classInfo extends State<classInfo> {
       },
     );
   }
-
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1102,8 +1101,19 @@ class _classInfo extends State<classInfo> {
           }, icon: Icon(Icons.search)),
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
-            onSelected: (value) {
-              print('Selected: $value');
+            onSelected: (value) async {
+              if (value == 'name') {
+                // Trier par nom
+                lclass = await Dtabase().getClassesOrdered('name');
+              } else if (value == 'level') {
+                // Trier par niveau
+                lclass = await Dtabase().getClassesOrdered('level');
+              } else if (value == 'speciality') {
+                lclass = await Dtabase().getClassesOrdered('speciality');
+              }
+              setState(() {
+                lclass;
+              });
             },
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
@@ -1113,6 +1123,10 @@ class _classInfo extends State<classInfo> {
               PopupMenuItem(
                 value: 'level',
                 child: Text('Filter by Level'),
+              ),
+              PopupMenuItem(
+                value: 'speciality',
+                child: Text('Filter by speciality'),
               ),
             ],
           ),
@@ -1428,8 +1442,11 @@ class _groupInfo extends State<groupInfo> {
 
 class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
+
   factory Dtabase() => _instance;
+
   Dtabase._internal();
+
   Database? _database;
 
   Future<Database> get database async {
@@ -1453,7 +1470,7 @@ class Dtabase {
                 'speciality TEXT NOT NULL, '
                 'level INTEGER NOT NULL, '
                 'year TEXT NOT NULL ,'
-
+                'commant Text '
                 ')'
         );
 
@@ -1479,14 +1496,44 @@ class Dtabase {
                 'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
                 ')'
         );
-
+        await db.execute('''
+  ALTER TABLE class ADD COLUMN comment TEXT
+''');
       },
     );
+  }
 
+  // Filtrer les classes par nom, niveau ou spécialité
+  Future<List<Map<String, dynamic>>> getClassesOrdered(String filterBy) async {
+    final db = await database;
+
+    if (filterBy == 'name') {
+      // Trier par nom
+      return await db.query(
+        'class',
+        orderBy: 'name ASC',  // Trier par nom (ordre croissant)
+      );
+    } else if (filterBy == 'level') {
+      // Trier par niveau
+      return await db.query(
+        'class',
+        orderBy: 'level ASC',
+      );
+    } else if (filterBy == 'speciality' ) {
+      // Filtrer par spécialité
+      return await db.query(
+        'class',
+        orderBy: 'speciality ASC',
+      );
+    } else {
+      // Si aucune option n'est spécifiée, retourner toutes les classes sans tri
+      return await db.query('class');
+    }
   }
 
   // Insert class
-  Future<bool> insertClass(String name, String speciality, int level, String year) async {
+  Future<bool> insertClass(String name, String speciality, int level,
+      String year) async {
     try {
       final db = await database;
       await db.insert(
@@ -1581,7 +1628,8 @@ class Dtabase {
   }
 
   // Delete student
-  Future<void> deleteStudent(String finame, String famname, int groupId, String speciality) async {
+  Future<void> deleteStudent(String finame, String famname, int groupId,
+      String speciality) async {
     final db = await database;
     await db.delete(
       'student',
@@ -1589,7 +1637,9 @@ class Dtabase {
       whereArgs: [finame, famname, groupId, speciality],
     );
   }
-  Future<void> updateClass(int cid, String name, String speciality, int level, String year) async {
+
+  Future<void> updateClass(int cid, String name, String speciality, int level,
+      String year) async {
     final db = await database;
     await db.update(
       'class',
@@ -1607,9 +1657,9 @@ class Dtabase {
   Future<void> addComment(int cid, String comment) async {
     final db = await database;
     await db.update(
-      'classes',
+      'class',
       {
-        'comment': comment,
+        'comment': comment, // Ajoute le commentaire à la base de données
       },
       where: 'cid = ?',
       whereArgs: [cid],
