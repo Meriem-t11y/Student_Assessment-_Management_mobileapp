@@ -58,12 +58,36 @@ class _homePage extends State<HomePage>{
       finameContoller=TextEditingController(),
       fanameContoller=TextEditingController(),
       yearController=TextEditingController();
-
   int? group;
-  String? level ,speciality , year;
+  String? level ,speciality;
   final _formKey = GlobalKey<FormState>();
+  final dbc=Dtabase();
+  List<Map<String, dynamic>> Lclass = [];
+  void initState(){
+    super.initState();
+    loadClasses();
+  }
+  Future<void> loadClasses() async {
+    final classes = await dbc.getClasses();
+    setState(() {
+      Lclass=classes;
+    });
+  }
+  final Map<int, Map<String, String>> items = {
+    0: {'title': 'Title 0', 'level': 'Level 0'},
+    1: {'title': 'Title 1', 'level': 'Level 1'},
+    2: {'title': 'Title 2', 'level': 'Level 2'},
+    3: {'title': 'Title 3', 'level': 'Level 3'},
+    4: {'title': 'Title 4', 'level': 'Level 4'},
+    5: {'title': 'Title 5', 'level': 'Level 5'},
+    6: {'title': 'Title 6', 'level': 'Level 6'},
+    7: {'title': 'Title 7', 'level': 'Level 7'},
+    8: {'title': 'Title 8', 'level': 'Level 8'},
+    9: {'title': 'Title 9', 'level': 'Level 9'},
+  };
 
   Widget build(BuildContext context) {
+
     return Scaffold(
         appBar:
         AppBar(
@@ -105,7 +129,7 @@ class _homePage extends State<HomePage>{
             ),
           ],
         ),
-        backgroundColor: Color(0xFFFFFFFF) ,
+        backgroundColor: Color(0xFFFFFFFE) ,
         body:Column(
             children: [
               Row(
@@ -165,7 +189,6 @@ class _homePage extends State<HomePage>{
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // Champ pour le nom de la classe
                                         TextFormField(
                                           decoration: InputDecoration(
                                             labelText: 'Class Name*',
@@ -174,14 +197,15 @@ class _homePage extends State<HomePage>{
                                           controller: nameContoller,
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
-                                              return "you must fill class name";
+                                              return "You must fill class name";
+                                            }
+                                            if(RegExp(r'^[a-z][A-Z]').hasMatch(value)){
+                                              return "the class name should start with alphabet";
                                             }
                                             return null;
                                           },
                                         ),
                                         SizedBox(height: 8),
-
-                                        // Champ pour la spécialité
                                         DropdownButtonFormField<String>(
                                           decoration: InputDecoration(
                                             labelText: 'Speciality',
@@ -198,14 +222,12 @@ class _homePage extends State<HomePage>{
                                           },
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
-                                              return "you must fill speciality";
+                                              return "You must fill speciality";
                                             }
                                             return null;
                                           },
                                         ),
                                         SizedBox(height: 8),
-
-                                        // Champ pour le niveau
                                         DropdownButtonFormField<String>(
                                           decoration: InputDecoration(
                                             labelText: 'Level',
@@ -222,47 +244,37 @@ class _homePage extends State<HomePage>{
                                           },
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
-                                              return "you must fill level";
+                                              return "You must fill level";
+                                            }
+                                            if(RegExp(r'\D').hasMatch(value)){
+                                              return'the level should be a number';
                                             }
                                             return null;
                                           },
                                         ),
                                         SizedBox(height: 8),
-
-                                        // Champ avec autocomplétion pour l'année
-                                        Autocomplete<String>(
-                                          optionsBuilder: (TextEditingValue textEditingValue) {
-                                            List<String> yearOptions = [
-                                              '2024-2025',
-                                            ];
-                                            return yearOptions.where((String option) {
-                                              return option
-                                                  .toLowerCase()
-                                                  .contains(textEditingValue.text.toLowerCase());
-                                            }).toList();
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Year*',
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          controller: yearController, // Utilisation du contrôleur
+                                          onChanged: (value) {
+                                            if (value == "2") {
+                                              yearController.text = "2024-2025";
+                                              yearController.selection = TextSelection.fromPosition(
+                                                TextPosition(offset: yearController.text.length),
+                                              );
+                                            }
                                           },
-                                          onSelected: (String selection) {
-                                            year = selection;
-                                          },
-                                          fieldViewBuilder: (BuildContext context,
-                                              TextEditingController textEditingController,
-                                              FocusNode focusNode,
-                                              VoidCallback onFieldSubmitted) {
-                                            yearController = textEditingController;
-                                            return TextFormField(
-                                              controller: textEditingController,
-                                              focusNode: focusNode,
-                                              decoration: InputDecoration(
-                                                labelText: 'Year*',
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              validator: (value) {
-                                                if (value == null || value.isEmpty) {
-                                                  return "you must fill year";
-                                                }
-                                                return null;
-                                              },
-                                            );
+                                          validator: (value) {
+                                            if (value == null || value.isEmpty) {
+                                              return "You must fill year";
+                                            }
+                                            if(RegExp(r'[^a-z][A-Z]').hasMatch(value)){
+                                              return "year not valid";
+                                            }
+                                            return null;
                                           },
                                         ),
                                       ],
@@ -270,7 +282,6 @@ class _homePage extends State<HomePage>{
                                   ),
                                 ),
                                 actions: [
-                                  // Bouton pour annuler
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
                                     child: Text(
@@ -278,18 +289,12 @@ class _homePage extends State<HomePage>{
                                       style: TextStyle(color: Color(0xFF18185C)),
                                     ),
                                   ),
-
-                                  // Bouton pour valider
                                   ElevatedButton(
                                     onPressed: () async {
                                       if (_formKey.currentState!.validate()) {
                                         final dbc = Dtabase();
                                         bool success = await dbc.insertClass(
-                                          nameContoller.text,
-                                          speciality!,
-                                          int.parse(level!),
-                                          year!,
-                                        );
+                                            nameContoller.text, speciality!, int.parse(level!), yearController.text);
 
                                         if (success) {
                                           Navigator.pop(context);
@@ -724,270 +729,87 @@ class _homePage extends State<HomePage>{
                   ),
                 ],
               ),
-              Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GridView.count(
-                      scrollDirection: Axis.horizontal,
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 2.0,
-                      mainAxisSpacing: 2.0,
-                      childAspectRatio: 1/3,
+        Expanded(
+            child: GridView.builder(
+              scrollDirection: Axis.horizontal,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 2.0,
+                mainAxisSpacing: 2.0,
+                childAspectRatio: 1 / 2.5,
+              ),
+              itemCount: items.length, // Utilisation de la longueur de la map
+              itemBuilder: (context, index) {
+                final item = items[index]!; // Récupère les valeurs à partir de la map
+                return Container(
+                  decoration: BoxDecoration(
+                    color: index.isEven ? Colors.blueAccent : Color(0xFF18185C),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blueAccent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(padding:  EdgeInsets.fromLTRB(5, 5, 2, 0),
-                                      child:Text("Title.......",
-                                        textAlign: TextAlign.start,
-                                        style: TextStyle(
-                                            color: Color(0xFFFFFFFF),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20
-                                        ),
-                                      ),),
-                                    IconButton(onPressed: (){},
-                                        icon: Icon(Icons.border_color_outlined ,
-                                          color: Color(0xFFFFFFFF),
-                                        )
-                                    )
-                                  ],
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(5, 5, 2, 0),
+                              child: Text(
+                                item['title']!,
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
                                 ),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Level",
-                                      textAlign: TextAlign.start,
-                                      style: TextStyle(
-                                          color: Color(0xFFFFFFFF),
-                                          fontSize: 16
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                            onPressed: (){},
-                                            icon: Icon(Icons.delete_outline,
-                                              color: Color(0xFFFFFFFF),
-                                            )
-                                        ),
-                                        IconButton(
-                                            onPressed: (){},
-                                            icon: Icon(Icons.comment_bank_outlined,
-                                              color: Color(0xFFFFFFFF),
-                                            )
-                                        )
-
-
-                                      ],
-                                    )
-
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color:Color(0xFF18185C),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(padding:  EdgeInsets.fromLTRB(5, 5, 2, 0),
-                                      child:Text("Title.......",
-                                        textAlign: TextAlign.start,
-                                        style: TextStyle(
-                                            color: Color(0xFFFFFFFF),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20
-                                        ),
-                                      ),),
-                                    IconButton(onPressed: (){},
-                                        icon: Icon(Icons.border_color_outlined ,
-                                          color: Color(0xFFFFFFFF),
-                                        )
-                                    )
-                                  ],
-                                ),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("Level",
-                                      textAlign: TextAlign.start,
-                                      style: TextStyle(
-                                          color: Color(0xFFFFFFFF),
-                                          fontSize: 16
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                            onPressed: (){},
-                                            icon: Icon(Icons.delete_outline,
-                                              color: Color(0xFFFFFFFF),
-                                            )
-                                        ),
-                                        IconButton(
-                                            onPressed: (){},
-                                            icon: Icon(Icons.comment_bank_outlined,
-                                              color: Color(0xFFFFFFFF),
-                                            )
-                                        )
-
-
-                                      ],
-                                    )
-
-                                  ],
-                               ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color:Color(0xFF18185C) ,
-                                width: 2.0,
                               ),
                             ),
-                            child:Center(child:Column(
+                            IconButton(
+                              onPressed: () {},
+                              icon: Icon(
+                                Icons.border_color_outlined,
+                                color: Color(0xFFFFFFFF),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item['level']!,
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 16,
+                              ),
+                            ),
+                            Row(
                               children: [
-                                Padding(padding:EdgeInsets.all(8) ,child:  IconButton(icon :Icon(Icons.add_circle_outline ,size: 35, ),
-                                  onPressed: (){
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          backgroundColor: Color(0xFFD5DEEF ),
-                                          title: Text('Enter Class Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
-                                          content: SingleChildScrollView( // Pour éviter le débordement
-                                            child: Form(
-                                              key:_formKey ,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  TextFormField(
-                                                    decoration: InputDecoration(
-                                                      labelText: 'Class Name*',
-                                                      border: OutlineInputBorder(),
-                                                    ),
-                                                    controller:nameContoller ,
-                                                    validator: (value){
-                                                      if(value==null|| value.isEmpty){
-                                                        return "you must fill class name";
-                                                      }
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 8),
-                                                  DropdownButtonFormField<String>(
-                                                    decoration: InputDecoration(
-                                                      labelText: 'Speciality',
-                                                      border: OutlineInputBorder(),
-                                                    ),
-                                                    items: ['Engineer', 'Licence', 'Master'].
-                                                    map((String value) => DropdownMenuItem<String>(
-                                                      value: value,
-                                                      child: Text(value),
-                                                    )).toList(),
-                                                    onChanged: (value) {
-                                                      speciality=value;
-                                                    },
-                                                    validator: (value){
-                                                      if( value==null || value.isEmpty){
-                                                        return " you must fill level";
-                                                      }
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 8),
-                                                  DropdownButtonFormField<String>(
-                                                    decoration: InputDecoration(
-                                                      labelText: 'Level',
-                                                      border: OutlineInputBorder(),
-                                                    ),
-                                                    items: ['1st ', '2nd', '3rd']
-                                                        .map((String value) => DropdownMenuItem<String>(
-                                                      value: value,
-                                                      child: Text(value),
-                                                    )
-                                                    ).toList(),
-                                                    onChanged: (value) {
-                                                      level=value;
-                                                    },
-                                                    validator: (value){
-                                                      if( value==null || value.isEmpty){
-                                                        return " you must fill level";
-                                                      }
-                                                    },
-                                                  ),
-                                                  SizedBox(height: 8),
-                                                  TextFormField(
-                                                    decoration: InputDecoration(
-                                                      labelText: 'Year*',
-                                                      border: OutlineInputBorder(),
-                                                    ),
-                                                    validator: (value){
-                                                      if(value==null|| value.isEmpty){
-                                                        return "you must fill year";
-                                                      }
-                                                    },
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(context),
-                                              child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                if(_formKey.currentState!.validate()){
-                                                  Navigator.pop(context);
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('The class was create seccefully!')),
-                                                  );}
-                                              },
-                                              child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xFFB1C9EF),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                    );
-
-                                  },
-                                  color: Color(0xFF18185C),
-                                ),),
-                                Text("add a new class",
-                                  style: TextStyle(
-                                      color: Color(0xFF18185C),
-                                      fontWeight: FontWeight.bold
-                                  ),)
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    Icons.comment_bank_outlined,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
+                                ),
                               ],
-                            ) ,)
-                        )
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  )),
+                  ),
+                );
+              },
+            ),),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
