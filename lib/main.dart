@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -74,18 +72,6 @@ class _homePage extends State<HomePage>{
       lclass = data;
     });
   }
-  final Map<int, Map< String , dynamic>> items = {
-    0: {'title': 'Title 0', 'level': 'Level 0'},
-    1: {'title': 'Title 1', 'level': 'Level 1'},
-    2: {'title': 'Title 2', 'level': 'Level 2'},
-    3: {'title': 'Title 3', 'level': 'Level 3'},
-    4: {'title': 'Title 4', 'level': 'Level 4'},
-    5: {'title': 'Title 5', 'level': 'Level 5'},
-    6: {'title': 'Title 6', 'level': 'Level 6'},
-    7: {'title': 'Title 7', 'level': 'Level 7'},
-    8: {'title': 'Title 8', 'level': 'Level 8'},
-    9: {'title': 'Title 9', 'level': 'Level 9'},
-  };
 
   Widget build(BuildContext context) {
 
@@ -101,24 +87,6 @@ class _homePage extends State<HomePage>{
               Icons.assignment,
               color: Color(0xFFB1C9EF),
               size: 28, // Agrandir l'icône
-            ),
-          ),
-          title: Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF2E2E6E), // Fond plus clair pour le champ
-              borderRadius: BorderRadius.circular(20), // Coins arrondis
-            ),
-            child: TextField(
-              controller: searchcontroller,
-              keyboardType: TextInputType.text,
-              style: TextStyle(color: Colors.white), // Couleur du texte de recherche
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                hintStyle: TextStyle(color: Color(0xFFB1C9EF)), // Couleur du texte d'indice
-                prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)), // Icône de recherche
-                border: InputBorder.none, // Pas de bordure
-                contentPadding: EdgeInsets.all(12), // Espacement intérieur
-              ),
             ),
           ),
           actions: [
@@ -296,7 +264,6 @@ class _homePage extends State<HomePage>{
                                         final dbc = Dtabase();
                                         bool success = await dbc.insertClass(
                                             nameContoller.text, speciality!, int.parse(level!), yearController.text);
-
                                         if (success) {
                                           Navigator.pop(context);
                                           ScaffoldMessenger.of(context).showSnackBar(
@@ -424,6 +391,8 @@ class _homePage extends State<HomePage>{
                                             border: OutlineInputBorder(),
                                           ),
                                           keyboardType: TextInputType.number,
+                                          onChanged: (value){
+                                            String number=value; },
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
                                               return "You must fill number";
@@ -487,7 +456,7 @@ class _homePage extends State<HomePage>{
                                         bool success = await dbc.insertGroup(
                                             speciality!,
                                             int.parse(level!),
-                                            int.parse(numberController.text));
+                                            int.parse(numberController.text !));
                                         if (success) {
                                           Navigator.pop(context);
                                           ScaffoldMessenger.of(context).showSnackBar(
@@ -796,13 +765,6 @@ class _homePage extends State<HomePage>{
                                     color: Color(0xFFFFFFFF),
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(
-                                    Icons.comment_bank_outlined,
-                                    color: Color(0xFFFFFFFF),
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -905,15 +867,19 @@ class classInfo extends StatefulWidget{
   _classInfo createState() =>  _classInfo();
 }
 class _classInfo extends State<classInfo> {
-  TextEditingController searchController=TextEditingController();
-  final dbc=Dtabase();
+  TextEditingController searchController = TextEditingController();
+  final dbc = Dtabase();
   List<Map<String, dynamic>> filteredClasses = [];
   List<Map<String, dynamic>> lclass = [];
-  void initState(){
+  String selectedFilter = 'None'; // Nouveau filtre pour stocker la sélection
+
+  @override
+  void initState() {
     super.initState();
     _loadClasses();
-    searchController.addListener(_filterClasses);
+    searchController.addListener(_searchClasses); // Appeler uniquement la recherche
   }
+
   Future<void> _loadClasses() async {
     final db = Dtabase();
     final data = await db.getClasses();
@@ -922,6 +888,7 @@ class _classInfo extends State<classInfo> {
       filteredClasses = data;
     });
   }
+
   void _showDeleteDialog(BuildContext context, int cid) {
     showDialog(
       context: context,
@@ -944,6 +911,7 @@ class _classInfo extends State<classInfo> {
                   await db.deleteClass(cid);
                   setState(() {
                     lclass = List.from(lclass)..removeWhere((classe) => classe['cid'] == cid);
+                    _filterClasses();  // Reappliquer le filtre après suppression
                   });
                 } catch (e) {
                   print("Error: $e");
@@ -956,6 +924,7 @@ class _classInfo extends State<classInfo> {
       },
     );
   }
+
   void _showUpdateDialog(BuildContext context, Map<String, dynamic> classe) {
     TextEditingController nameController = TextEditingController(text: classe['name']);
     TextEditingController specialityController = TextEditingController(text: classe['speciality']);
@@ -1002,13 +971,12 @@ class _classInfo extends State<classInfo> {
               onPressed: () async {
                 final db = Dtabase();
                 await db.updateClass(
-                  classe['cid'], // L'ID de la classe à mettre à jour
+                  classe['cid'],
                   nameController.text,
                   specialityController.text,
                   int.parse(levelController.text),
-                 yearController.text ,
+                  yearController.text,
                 );
-
                 _loadClasses(); // Recharger la liste après la mise à jour
                 Navigator.of(context).pop();
               },
@@ -1018,43 +986,9 @@ class _classInfo extends State<classInfo> {
       },
     );
   }
-  void _showCommentDialog(BuildContext context, int cid) {
-    TextEditingController commentController = TextEditingController(); // Contrôleur pour le commentaire
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Add Comment"),
-          content: TextField(
-            controller: commentController,
-            decoration: InputDecoration(
-              hintText: "Write your comment...",
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text("Add", style: TextStyle(color: Colors.green)),
-              onPressed: () async {
-                final db = Dtabase();
-                await db.addComment(cid, commentController.text); // Ajoute le commentaire à la base de données
-
-                _loadClasses(); // Recharge la liste des classes après l'ajout du commentaire
-                Navigator.of(context).pop(); // Ferme la boîte de dialogue
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-  void _filterClasses() {
+  // Fonction de recherche (séparée du filtre)
+  void _searchClasses() {
     String query = searchController.text.toLowerCase();
     setState(() {
       filteredClasses = lclass.where((classe) {
@@ -1064,6 +998,23 @@ class _classInfo extends State<classInfo> {
       }).toList();
     });
   }
+
+  // Fonction de filtre (séparée de la recherche)
+  void _filterClasses() {
+    setState(() {
+      if (selectedFilter == 'None') {
+        filteredClasses = lclass; // Aucun filtre
+      } else if (selectedFilter == 'name') {
+        filteredClasses = lclass..sort((a, b) => a['name'].compareTo(b['name']));
+      } else if (selectedFilter == 'level') {
+        filteredClasses = lclass..sort((a, b) => a['level'].compareTo(b['level']));
+      } else if (selectedFilter == 'speciality') {
+        filteredClasses = lclass..sort((a, b) => a['speciality'].compareTo(b['speciality']));
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1075,184 +1026,16 @@ class _classInfo extends State<classInfo> {
           child: Icon(
             Icons.assignment,
             color: Color(0xFFB1C9EF),
-            size: 28, // Agrandir l'icône
+            size: 28,
           ),
         ),
-        title: Text("MY CLASSES" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 14),),
+        title: Text(
+          "MY CLASSES",
+          style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 14),
+        ),
         actions: [
-          IconButton(onPressed: (){
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  contentPadding: EdgeInsets.all(20),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: Color(0xFF2E2E6E),
-                  content: Container(
-                    decoration: BoxDecoration(
-                      color: Color(0xFF2E2E6E),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      keyboardType: TextInputType.text,
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
-                        prefixIcon: IconButton(onPressed: (){Navigator.of(context).pop();},icon: Icon( Icons.search)),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }, icon: Icon(Icons.search)),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
-            onSelected: (value) async {
-              if (value == 'name') {
-                // Trier par nom
-                lclass = await Dtabase().getClassesOrdered('name');
-              } else if (value == 'level') {
-                // Trier par niveau
-                lclass = await Dtabase().getClassesOrdered('level');
-              } else if (value == 'speciality') {
-                lclass = await Dtabase().getClassesOrdered('speciality');
-              }
-              setState(() {
-                lclass;
-              });
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem(
-                value: 'name',
-                child: Text('Filter by Name'),
-              ),
-              PopupMenuItem(
-                value: 'level',
-                child: Text('Filter by Level'),
-              ),
-              PopupMenuItem(
-                value: 'speciality',
-                child: Text('Filter by speciality'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1,
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 8.0,
-            childAspectRatio: 4/2,
-          ),
-          itemCount: filteredClasses.length, // Utiliser la liste filtrée
-          itemBuilder: (context, index) {
-            final classe = filteredClasses[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Name: ${classe['name']}',
-                          style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF)),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.comment),
-                              onPressed: () {
-                                _showCommentDialog(context, classe['cid']);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                _showUpdateDialog(context, classe);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                _showDeleteDialog(context ,classe['cid']);
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Text('Speciality: ${classe['speciality']}',
-                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
-                    SizedBox(height: 4),
-                    Text('Level: ${classe['level']}',
-                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
-                    SizedBox(height: 4),
-                    Text('Year: ${classe['year']}',
-                        style: TextStyle(fontWeight: FontWeight.bold , color:Color( 0xFFB1C9EF))),
-                  ],
-                ),
-              ),
-            );
-
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class groupInfo extends StatefulWidget{
-  _groupInfo createState() =>  _groupInfo();
-}
-class _groupInfo extends State<groupInfo> {
-  TextEditingController searchController=TextEditingController();
-  final dbc=Dtabase();
-  List<Map<String, dynamic>> Lclass = [];
-  void initState(){
-    super.initState();
-    loadClasses();
-  }
-  Future<void> loadClasses() async {
-    final groups = await dbc.getGroup();
-    setState(() {
-      Lclass=groups;
-    });
-    Widget build(BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(
-          elevation: 4,
-          backgroundColor: Color(0xFF18185C),
-          titleSpacing: 0,
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.assignment,
-              color: Color(0xFFB1C9EF),
-              size: 28, // Agrandir l'icône
-            ),
-          ),
-          title: Text("MY Groups" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 14),),
-          actions: [
-            IconButton(onPressed: (){
+          IconButton(
+            onPressed: () {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -1272,9 +1055,14 @@ class _groupInfo extends State<groupInfo> {
                         keyboardType: TextInputType.text,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Search by level ',
+                          hintText: 'Search...',
                           hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
-                          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                          prefixIcon: IconButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            icon: Icon(Icons.search),
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(12),
                         ),
@@ -1283,63 +1071,152 @@ class _groupInfo extends State<groupInfo> {
                   );
                 },
               );
-            }, icon: Icon(Icons.search)),
-            PopupMenuButton<String>(
-              icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
-              onSelected: (value) {
-                print('Selected: $value');
-              },
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
-                  value: 'name',
-                  child: Text('Filter by Name'),
-                ),
-                PopupMenuItem(
-                  value: 'level',
-                  child: Text('Filter by Level'),
-                ),
-              ],
-            ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8.0,
-              mainAxisSpacing: 8.0,
-              childAspectRatio: 1.2,
-            ),
-            itemCount: Lclass.length,
-            itemBuilder: (context, index) {
-              final classe = Lclass[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text('Speciality: ${classe['speciality']}'),
-                      SizedBox(height: 4),
-                      Text('Level: ${classe['level']}'),
-                      SizedBox(height: 4),
-                      Text('Year: ${classe['group_id']}'),
-                      SizedBox(height: 4),
-                    ],
-                  ),
-                ),
-              );
             },
+            icon: Icon(Icons.search),
           ),
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.filter_list,
+              color: Color(0xFFB1C9EF),
+            ),
+            onSelected: (value) {
+              setState(() {
+                selectedFilter = value;  // Mise à jour du filtre sélectionné
+              });
+              _filterClasses();  // Appliquer immédiatement le filtre
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                value: 'None',
+                child: Text('No Filter'),
+              ),
+              PopupMenuItem(
+                value: 'name',
+                child: Text('Filter by Name'),
+              ),
+              PopupMenuItem(
+                value: 'level',
+                child: Text('Filter by Level'),
+              ),
+              PopupMenuItem(
+                value: 'speciality',
+                child: Text('Filter by Speciality'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            childAspectRatio: 4 / 2,
+          ),
+          itemCount: filteredClasses.length,
+          itemBuilder: (context, index) {
+            final classe = filteredClasses[index];
+            return Card(
+              color: index.isEven ? Colors.blueAccent : Color(0xFF18185C),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Name: ${classe['name']}',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB1C9EF)),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Color(0xFFB1C9EF)),
+                              onPressed: () {
+                                _showUpdateDialog(context, classe);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                _showDeleteDialog(context, classe['cid']);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text('Speciality: ${classe['speciality']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text('Level: ${classe['level']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text('Year: ${classe['year']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
-      );
-    }
+      ),
+    );
+  }
+}
+
+
+class groupInfo extends StatefulWidget{
+  _groupInfo createState() =>  _groupInfo();
+}
+class _groupInfo extends State<groupInfo> {
+  TextEditingController searchController = TextEditingController();
+  final dbc = Dtabase();
+  List<Map<String, dynamic>> Lclass = [];
+  List<Map<String, dynamic>> filteredClasses = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadClasses();
+    searchController.addListener(_searchClasses); // Ajout du listener pour la recherche
+  }
+
+  // Charger les classes depuis la base de données
+  Future<void> loadClasses() async {
+    final groups = await dbc.getGroup();
+    setState(() {
+      Lclass = groups;
+      filteredClasses = groups; // Initialiser la liste filtrée avec toutes les classes au début
+    });
+  }
+
+  // Fonction de recherche
+  void _searchClasses() {
+    String query = searchController.text.toLowerCase();
+    setState(() {
+      // Filtrer en fonction du texte saisi dans le champ de recherche
+      filteredClasses = Lclass.where((classe) {
+        return classe['speciality'].toLowerCase().contains(query) ||
+            classe['level'].toString().contains(query);
+      }).toList();
+    });
+  }
+
+
+  void _applyFilter(String filter) {
+    setState(() {
+      if (filter == 'Speciality') {
+        filteredClasses.sort((a, b) => a['speciality'].compareTo(b['speciality']));
+      } else if (filter == 'level') {
+        filteredClasses.sort((a, b) => a['level'].compareTo(b['level']));
+      }
+    });
   }
 
   Widget build(BuildContext context) {
@@ -1356,45 +1233,46 @@ class _groupInfo extends State<groupInfo> {
             size: 28, // Agrandir l'icône
           ),
         ),
-        title: Text("MY GROUPS" , style: TextStyle(color: Color(0xFFB1C9EF),fontSize: 16 , fontWeight: FontWeight.bold),),
+        title: Text("MY GROUPS", style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(onPressed: (){
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  contentPadding: EdgeInsets.all(20),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: Color(0xFF2E2E6E),
-                  content: Container(
-                    decoration: BoxDecoration(
-                      color: Color(0xFF2E2E6E),
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    contentPadding: EdgeInsets.all(20),
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: TextField(
-                      controller: searchController,
-                      keyboardType: TextInputType.text,
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
-                        prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(12),
+                    backgroundColor: Color(0xFF2E2E6E),
+                    content: Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF2E2E6E),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        keyboardType: TextInputType.text,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search by level or speciality...',
+                          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(12),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          }, icon: Icon(Icons.search)),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.filter_list ,color: Color(0xFFB1C9EF)),
-            onSelected: (value) {
-              print('Selected: $value');
+                  );
+                },
+              );
             },
+            icon: Icon(Icons.search),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list, color: Color(0xFFB1C9EF)),
+            onSelected: _applyFilter, // Applique le filtre sélectionné
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 'Speciality',
@@ -1417,9 +1295,9 @@ class _groupInfo extends State<groupInfo> {
             mainAxisSpacing: 8.0,
             childAspectRatio: 1.2,
           ),
-          itemCount: Lclass.length,
+          itemCount: filteredClasses.length, // Utilisation de filteredClasses pour afficher les éléments filtrés
           itemBuilder: (context, index) {
-            final classe = Lclass[index];
+            final classe = filteredClasses[index];
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1427,26 +1305,18 @@ class _groupInfo extends State<groupInfo> {
               elevation: 4,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child:Container(
-                  child: Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Speciality: ${classe['speciality']}' ,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Text('Speciality: ${classe['speciality']}', style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 4),
-                    Text('Level: ${classe['level']}' ,
-                      style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text('Level: ${classe['level']}', style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 4),
-                    Text(
-                      'Number: ${classe['number']}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Text('Number: ${classe['number']}', style: TextStyle(fontWeight: FontWeight.bold)),
                     SizedBox(height: 4),
                   ],
                 ),
-                )
               ),
             );
           },
@@ -1455,7 +1325,82 @@ class _groupInfo extends State<groupInfo> {
     );
   }
 }
+class student extends StatefulWidget{
+  _studentList createState()=> _studentList();
+}
+class _studentList extends State<student>{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+        elevation: 4,
+        backgroundColor: Color(0xFF18185C),
+        titleSpacing: 0,
+        leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+          child: Icon(
+          Icons.assignment,
+          color: Color(0xFFB1C9EF),
+          size: 28, // Agrandir l'icône
+          ),
+        ),
+        title: Text("MY GROUPS", style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            onPressed: () {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+          return AlertDialog(
+          contentPadding: EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Color(0xFF2E2E6E),
+          content: Container(
+          decoration: BoxDecoration(
+          color: Color(0xFF2E2E6E),
+          borderRadius: BorderRadius.circular(20),
+          ),
+          child: TextField(
+          controller: searchController,
+          keyboardType: TextInputType.text,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+          hintText: 'Search by level or speciality...',
+          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.all(12),
+          ),
+          ),
+          ),
+          );
+          },
+          );
+          },
+            icon: Icon(Icons.search),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list, color: Color(0xFFB1C9EF)),
+            onSelected: _applyFilter, // Applique le filtre sélectionné
+            itemBuilder: (BuildContext context) => [
+          PopupMenuItem(
+          value: 'Speciality',
+          child: Text('Filter by Speciality'),
+          ),
+          PopupMenuItem(
+          value: 'level',
+          child: Text('Filter by Level'),
+          ),
+          ],
+          ),
+        ],
+        )
+    );
+  }
 
+}
 class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
 
@@ -1473,7 +1418,7 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'db5.db');
+    String path = join(databasesPath, 'db3.db');
     return await openDatabase(
       path,
       version: 4,
@@ -1490,7 +1435,6 @@ class Dtabase {
                 ')'
         );
 
-        // Table "group_table"
         await db.execute(
             'CREATE TABLE "group" ('
                 'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -1500,7 +1444,7 @@ class Dtabase {
                 ')'
         );
 
-        // Table "student"
+
         await db.execute(
             'CREATE TABLE student ('
                 'sid INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -1512,42 +1456,11 @@ class Dtabase {
                 'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
                 ')'
         );
-        await db.execute('''
-  ALTER TABLE class ADD COLUMN comment TEXT
-''');
+
       },
     );
   }
 
-  // Filtrer les classes par nom, niveau ou spécialité
-  Future<List<Map<String, dynamic>>> getClassesOrdered(String filterBy) async {
-    final db = await database;
-
-    if (filterBy == 'name') {
-      // Trier par nom
-      return await db.query(
-        'class',
-        orderBy: 'name ASC',  // Trier par nom (ordre croissant)
-      );
-    } else if (filterBy == 'level') {
-      // Trier par niveau
-      return await db.query(
-        'class',
-        orderBy: 'level ASC',
-      );
-    } else if (filterBy == 'speciality' ) {
-      // Filtrer par spécialité
-      return await db.query(
-        'class',
-        orderBy: 'speciality ASC',
-      );
-    } else {
-      // Si aucune option n'est spécifiée, retourner toutes les classes sans tri
-      return await db.query('class');
-    }
-  }
-
-  // Insert class
   Future<bool> insertClass(String name, String speciality, int level,
       String year) async {
     try {
@@ -1560,15 +1473,14 @@ class Dtabase {
           'level': level,
           'year': year,
         },
-      );
+       );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion de la classe : $e');
+      print('Erreur lors d insertion de la classe : $e');
       return false;
     }
   }
 
-  // Insert group
   Future<bool> insertGroup(String speciality, int level, int number) async {
     try {
       final db = await database;
@@ -1577,7 +1489,7 @@ class Dtabase {
         {
           'number': number,
           'speciality': speciality,
-          'level': level,
+          'level': level ,
         },
       );
       return true;
@@ -1622,7 +1534,6 @@ class Dtabase {
     return await db.query('group');
   }
 
-
   // Delete class
   Future<void> deleteClass(int cid) async {
     final db = await database;
@@ -1653,7 +1564,7 @@ class Dtabase {
       whereArgs: [finame, famname, groupId, speciality],
     );
   }
-
+  //update class
   Future<void> updateClass(int cid, String name, String speciality, int level,
       String year) async {
     final db = await database;
@@ -1669,17 +1580,13 @@ class Dtabase {
       whereArgs: [cid],
     );
   }
-
-  Future<void> addComment(int cid, String comment) async {
+  //student of group
+  Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
     final db = await database;
-    await db.update(
-      'class',
-      {
-        'comment': comment, // Ajoute le commentaire à la base de données
-      },
-      where: 'cid = ?',
-      whereArgs: [cid],
+    return await db.query(
+      'student',
+      where: 'group_id = ?',
+      whereArgs: [groupId],
     );
   }
-
 }
