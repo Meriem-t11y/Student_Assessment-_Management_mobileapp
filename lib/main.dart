@@ -1298,7 +1298,16 @@ class _groupInfo extends State<groupInfo> {
           itemCount: filteredClasses.length, // Utilisation de filteredClasses pour afficher les éléments filtrés
           itemBuilder: (context, index) {
             final classe = filteredClasses[index];
-            return Card(
+            return GestureDetector(
+                onTap: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(
+                builder: (context) =>student(groupId: filteredClasses[index])));
+
+
+            },
+            child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1318,7 +1327,7 @@ class _groupInfo extends State<groupInfo> {
                   ],
                 ),
               ),
-            );
+            ));
           },
         ),
       ),
@@ -1326,81 +1335,159 @@ class _groupInfo extends State<groupInfo> {
   }
 }
 class student extends StatefulWidget{
-  _studentList createState()=> _studentList();
+  final Map<String, dynamic> groupId;
+  student({Key? key, required this.groupId}) : super(key: key);
+  _studentList createState()=> _studentList(groupId: groupId);
+
 }
-class _studentList extends State<student>{
+class _studentList extends State<student> {
+  final Map<String, dynamic> groupId;
+  _studentList({Key? key, required this.groupId});
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> students = [];
+  List<Map<String, dynamic>> filteredStudents = [];
+
+  Future<void> loadStudents() async {
+    final db=Dtabase();
+    final studentsList = await db.getStudentsByGroup(groupId['gid']);
+    setState(() {
+      students = studentsList;
+      filteredStudents = students;
+    });
+  }
+
+  // Fonction pour rechercher les étudiants
+  void _searchStudents() {
+    String query = searchController.text.toLowerCase();
+    setState(() {
+      filteredStudents = students.where((student) {
+        return student['speciality'].toLowerCase().contains(query) ||
+            student['level'].toString().contains(query);
+      }).toList();
+    });
+  }
+
+  // Fonction de filtre pour trier par spécialité ou niveau
+  void _applyFilter(String filter) {
+    setState(() {
+      if (filter == 'Speciality') {
+        filteredStudents.sort((a, b) => a['speciality'].compareTo(b['speciality']));
+      } else if (filter == 'level') {
+        filteredStudents.sort((a, b) => a['level'].compareTo(b['level']));
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadStudents();
+    searchController.addListener(_searchStudents);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         elevation: 4,
         backgroundColor: Color(0xFF18185C),
         titleSpacing: 0,
         leading: Padding(
-        padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Icon(
-          Icons.assignment,
-          color: Color(0xFFB1C9EF),
-          size: 28, // Agrandir l'icône
+            Icons.assignment,
+            color: Color(0xFFB1C9EF),
+            size: 28,
           ),
         ),
-        title: Text("MY GROUPS", style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold)),
+        title: Text(
+          "MY GROUPS",
+          style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             onPressed: () {
-          showDialog(
-          context: context,
-          builder: (BuildContext context) {
-          return AlertDialog(
-          contentPadding: EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: Color(0xFF2E2E6E),
-          content: Container(
-          decoration: BoxDecoration(
-          color: Color(0xFF2E2E6E),
-          borderRadius: BorderRadius.circular(20),
-          ),
-          child: TextField(
-          controller: searchController,
-          keyboardType: TextInputType.text,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-          hintText: 'Search by level or speciality...',
-          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
-          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.all(12),
-          ),
-          ),
-          ),
-          );
-          },
-          );
-          },
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    contentPadding: EdgeInsets.all(20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    backgroundColor: Color(0xFF2E2E6E),
+                    content: Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF2E2E6E),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        keyboardType: TextInputType.text,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search by level or speciality...',
+                          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                          prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(12),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
             icon: Icon(Icons.search),
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list, color: Color(0xFFB1C9EF)),
-            onSelected: _applyFilter, // Applique le filtre sélectionné
+            onSelected: _applyFilter,
             itemBuilder: (BuildContext context) => [
-          PopupMenuItem(
-          value: 'Speciality',
-          child: Text('Filter by Speciality'),
-          ),
-          PopupMenuItem(
-          value: 'level',
-          child: Text('Filter by Level'),
-          ),
-          ],
+              PopupMenuItem(
+                value: 'Speciality',
+                child: Text('Filter by Speciality'),
+              ),
+              PopupMenuItem(
+                value: 'level',
+                child: Text('Filter by Level'),
+              ),
+            ],
           ),
         ],
-        )
+      ),
+      body: ListView.builder(
+        itemCount: filteredStudents.length,
+        itemBuilder: (context, index) {
+          final student = filteredStudents[index];
+          return ListTile(
+            leading: Icon(Icons.person),
+            title: Text('${student['finame']} ${student['famname']}'),
+            subtitle: Text('Speciality: ${student['speciality']} | Level: ${student['level']}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () {
+                    // Code pour mettre à jour l'étudiant
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    // Code pour supprimer l'étudiant
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
-
 }
+
 class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
 
@@ -1476,11 +1563,12 @@ class Dtabase {
        );
       return true;
     } catch (e) {
-      print('Erreur lors d insertion de la classe : $e');
+      print('Erreur lors dinsertion de la classe : $e');
       return false;
     }
   }
 
+  // Insert group
   Future<bool> insertGroup(String speciality, int level, int number) async {
     try {
       final db = await database;
@@ -1534,6 +1622,7 @@ class Dtabase {
     return await db.query('group');
   }
 
+
   // Delete class
   Future<void> deleteClass(int cid) async {
     final db = await database;
@@ -1564,7 +1653,7 @@ class Dtabase {
       whereArgs: [finame, famname, groupId, speciality],
     );
   }
-  //update class
+
   Future<void> updateClass(int cid, String name, String speciality, int level,
       String year) async {
     final db = await database;
@@ -1580,7 +1669,7 @@ class Dtabase {
       whereArgs: [cid],
     );
   }
-  //student of group
+
   Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
     final db = await database;
     return await db.query(
@@ -1589,4 +1678,5 @@ class Dtabase {
       whereArgs: [groupId],
     );
   }
+
 }
