@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:excel/excel.dart';
+
 
 void main() {
   runApp(
@@ -56,6 +60,7 @@ class _homePage extends State<HomePage>{
       finameContoller=TextEditingController(),
       fanameContoller=TextEditingController(),
       yearController=TextEditingController();
+      String ?type;
   int? group;
   String? level ,speciality;
   final _formKey = GlobalKey<FormState>();
@@ -78,787 +83,785 @@ class _homePage extends State<HomePage>{
     return Scaffold(
         appBar:
         AppBar(
-          elevation: 4,
+          elevation: 6,
           backgroundColor: Color(0xFF18185C),
           titleSpacing: 0,
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Icon(
-              Icons.assignment,
-              color: Color(0xFFB1C9EF),
-              size: 28, // Agrandir l'icône
+              Icons.class_outlined,
+              color: Colors.white,
+              size: 30,
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.more_vert, color: Color(0xFFB1C9EF)), // Icône de menu
-              onPressed: () {
-                // Action lors de l'appui sur l'icône
-              },
+          title: Text(
+            "Home",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
             ),
-          ],
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(30),
+            ),
+          ),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF18185C), Color(0xFF3E4DB5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
         ),
         backgroundColor: Color(0xFFFFFFFE) ,
-        body:Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Functionalities",
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF18185C),
-                    ),
-                  ),
-                  // Espacement entre les deux textes
-                  SizedBox(width: 75),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF628ECB),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          iconSize: 30,
-                          icon: Icon(
-                            Icons.auto_stories_outlined,
-                            color: Color(0xFF18185C),
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Color(0xFFD5DEEF),
-                                title: Text(
-                                  'Enter Class Informations',
-                                  style: TextStyle(color: Color(0xFF18185C)),
-                                ),
-                                content: SingleChildScrollView(
-                                  child: Form(
-                                    key: _formKey,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: 'Class Name*',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          controller: nameContoller,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill class name";
-                                            }
-                                            if(RegExp(r'^[a-z][A-Z]').hasMatch(value)){
-                                              return "the class name should start with alphabet";
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: 8),
-                                        DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            labelText: 'Speciality',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          items: ['Engineer', 'Licence', 'Master']
-                                              .map((String value) => DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(value),
-                                          ))
-                                              .toList(),
-                                          onChanged: (value) {
-                                            speciality = value;
-                                          },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill speciality";
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: 8),
-                                        DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            labelText: 'Level',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          items: ['1', '2', '3']
-                                              .map((String value) => DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(value),
-                                          ))
-                                              .toList(),
-                                          onChanged: (value) {
-                                            level = value;
-                                          },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill level";
-                                            }
-                                            if(RegExp(r'\D').hasMatch(value)){
-                                              return'the level should be a number';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: 8),
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: 'Year*',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          controller: yearController, // Utilisation du contrôleur
-                                          onChanged: (value) {
-                                            if (value == "2") {
-                                              yearController.text = "2024-2025";
-                                              yearController.selection = TextSelection.fromPosition(
-                                                TextPosition(offset: yearController.text.length),
-                                              );
-                                            }
-                                          },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill year";
-                                            }
-                                            if(RegExp(r'[^a-z][A-Z]').hasMatch(value)){
-                                              return "year not valid";
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(
-                                      'Annuler',
-                                      style: TextStyle(color: Color(0xFF18185C)),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        final dbc = Dtabase();
-                                        bool success = await dbc.insertClass(
-                                            nameContoller.text, speciality!, int.parse(level!), yearController.text);
-                                        if (success) {
-                                          Navigator.pop(context);
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('The class was created successfully!')),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Error: Failed to create class.')),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    child: Text(
-                                      'Valider',
-                                      style: TextStyle(color: Color(0xFF18185C)),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFFB1C9EF),
-                                    ),
-                                  ),
-                                ],
+        body :Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 20.0),
+                GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  childAspectRatio: 1.2,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: Color(0xFFD5DEEF),
+                              title: Text(
+                                'Enter Class Informations',
+                                style: TextStyle(color: Color(0xFF18185C)),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      Text(
-                        textAlign: TextAlign.center,
-                        "Create \n Class",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFF18185C),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF628ECB),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          iconSize: 30,
-                          icon: Icon(
-                            Icons.group_add_outlined,
-                            color: Color(0xFF18185C),
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Color(0xFFD5DEEF),
-                                title: Text(
-                                  'Enter group Informations',
-                                  style: TextStyle(color: Color(0xFF18185C)),
-                                ),
-                                content: SingleChildScrollView(
-                                  // Pour éviter le débordement
-                                  child: Form(
-                                    key: _formKey,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            labelText: 'Speciality',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          items: ['Engineer', 'Licence', 'Master']
-                                              .map((String value) => DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(value),
-                                          ))
-                                              .toList(),
-                                          onChanged: (value) {
-                                            speciality = value;
-                                          },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill speciality";
-                                            }
-                                            return null;
-                                          },
+                              content: SingleChildScrollView(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Class Name*',
+                                          border: OutlineInputBorder(),
                                         ),
-                                        SizedBox(height: 8),
-                                        DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            labelText: 'Level',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          items: ['1', '2', '3']
-                                              .map((String value) => DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(value),
-                                          ))
-                                              .toList(),
-                                          onChanged: (value) {
-                                            level = value;
-                                          },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill level";
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: 8),
-                                        TextFormField(
-                                          controller: numberController,
-                                          decoration: InputDecoration(
-                                            labelText: 'Number*',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          onChanged: (value){
-                                            String number=value; },
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return "You must fill number";
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: 8),
-                                        ElevatedButton.icon(
-                                          onPressed: () async {
-                                            try {
-                                              // Ouvrir le sélecteur de fichier
-                                              final result = await FilePicker.platform.pickFiles(
-                                                type: FileType.custom,
-                                                allowedExtensions: ['csv','pdf'],
-                                              );
-
-                                              if (result != null && result.files.isNotEmpty) {
-                                                String? filePath = result.files.single.path;
-                                                if (filePath != null) {
-
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('CSV file uploaded successfully!')),
-                                                  );
-                                                }
-                                              } else {
-                                                print("Aucun fichier sélectionné.");
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('No file selected.')),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              print("Erreur lors de la sélection du fichier : $e");
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Erreur lors du téléchargement du fichier.')),
-                                              );
-                                            }
-                                          },
-
-                                          icon: Icon(Icons.upload_file),
-                                          label: Text("Upload list student"),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color(0xFFB1C9EF),
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        final dbc = Dtabase();
-                                        bool success = await dbc.insertGroup(
-                                            speciality!,
-                                            int.parse(level!),
-                                            int.parse(numberController.text !));
-                                        if (success) {
-                                          Navigator.pop(context);
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                                content: Text('The group was created successfully!')),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Error: Failed to create class.')),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFFB1C9EF),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Text(
-                        textAlign: TextAlign.center,
-                        "Create \n group",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFF18185C),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF628ECB),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          iconSize: 30,
-                          icon: Icon(
-                            Icons.person_add_alt,
-                            color: Color(0xFF18185C),
-                          ),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  backgroundColor: Color(0xFFD5DEEF ),
-                                  title: Text('Enter student Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
-                                  content: SingleChildScrollView(
-                                    child: Form(
-                                      key:_formKey ,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          TextFormField(
-                                            decoration: InputDecoration(
-                                              labelText: 'Familly Name*',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            controller:fanameContoller ,
-                                            validator: (value){
-                                              if(value==null|| value.isEmpty){
-                                                return "you must fill student Familly name";
-                                              }
-                                            },
-                                          ),
-                                          SizedBox(height: 8),
-                                          TextFormField(
-                                            decoration: InputDecoration(
-                                              labelText: 'First Name*',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            controller:finameContoller ,
-                                            validator: (value){
-                                              if(value==null|| value.isEmpty){
-                                                return "you must fill student first name";
-                                              }
-                                            },
-                                          ),
-                                          SizedBox(height: 8),
-                                          DropdownButtonFormField<String>(
-                                            decoration: InputDecoration(
-                                              labelText: 'Speciality',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            items: ['Engineer', 'Licence', 'Master'].
-                                            map((String value) => DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            )).toList(),
-                                            onChanged: (value) {
-                                              speciality=value;
-                                            },
-                                            validator: (value){
-                                              if( value==null || value.isEmpty){
-                                                return " you must fill speciality";
-                                              }
-                                            },
-                                          ),
-                                          SizedBox(height: 8),
-                                          DropdownButtonFormField<String>(
-                                            decoration: InputDecoration(
-                                              labelText: 'Level',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            items: ['1 ', '2', '3']
-                                                .map((String value) => DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            )
-                                            ).toList(),
-                                            onChanged: (value) {
-                                              level=value;
-                                            },
-                                            validator: (value){
-                                              if( value==null || value.isEmpty){
-                                                return " you must fill level";
-                                              }
-                                            },
-                                          ),
-                                          SizedBox(height: 8),
-                                          DropdownButtonFormField<String>(
-                                            decoration: InputDecoration(
-                                              labelText: 'Group number',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            items: ['1 ', '2', '3']
-                                                .map((String value) => DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            )
-                                            ).toList(),
-                                            onChanged: (value) {
-                                              group=int.parse(value!);
-                                            },
-                                            validator: (value){
-                                              if( value==null || value.isEmpty){
-                                                return " you must fill group number";
-                                              }
-                                            },
-                                          ),
-                                          SizedBox(height: 8),
-                                        ],
+                                        controller: nameContoller,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill class name";
+                                          }
+                                          if(RegExp(r'^[a-z][A-Z]').hasMatch(value)){
+                                            return "the class name should start with alphabet";
+                                          }
+                                          return null;
+                                        },
                                       ),
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        if (_formKey.currentState!.validate()) {
-                                          final dbc = Dtabase();
-                                          bool success = await dbc.insertStudent(finameContoller.text,
-                                              fanameContoller.text,
-                                              speciality!,
-                                              int.parse(level!),
-                                              group!);
-                                          if (success) {
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('The group was created successfully!')),
-                                            );
-                                          } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Error: Failed to create class.')),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Speciality',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['Engineer', 'Licence', 'Master']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          speciality = value;
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill speciality";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Level',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['1', '2', '3']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          level = value;
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill level";
+                                          }
+                                          if(RegExp(r'\D').hasMatch(value)){
+                                            return'the level should be a number';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Year*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        controller: yearController, // Utilisation du contrôleur
+                                        onChanged: (value) {
+                                          if (value == "2") {
+                                            yearController.text = "2024-2025";
+                                            yearController.selection = TextSelection.fromPosition(
+                                              TextPosition(offset: yearController.text.length),
                                             );
                                           }
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return "You must fill year";
+                                          }
+                                          if(RegExp(r'[^a-z][A-Z]').hasMatch(value)){
+                                            return "year not valid";
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'Annuler',
+                                    style: TextStyle(color: Color(0xFF18185C)),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      final dbc = Dtabase();
+                                      bool success = await dbc.insertClass(
+                                          nameContoller.text, speciality!, int.parse(level!), yearController.text);
+                                      if (success) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('The class was created successfully!')),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: Failed to create class.')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Text('Valider',
+                                    style: TextStyle(color: Color(0xFF18185C)),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFFB1C9EF),
+                                  ),
+                                ),
+                              ],
+                            )
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.purple.shade300, Colors.blue.shade600],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.chalkboardTeacher, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "Create Class",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: Color(0xFFD5DEEF),
+                            title: Text(
+                              'Enter group Informations',
+                              style: TextStyle(color: Color(0xFF18185C)),
+                            ),
+                            content: SingleChildScrollView(
+                              // Pour éviter le débordement
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Speciality',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: ['Engineer', 'Licence', 'Master']
+                                          .map((String value) => DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        speciality = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "You must fill speciality";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    SizedBox(height: 8),
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Level',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: ['1', '2', '3']
+                                          .map((String value) => DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        level = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "You must fill level";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    SizedBox(height: 8),
+                                    TextFormField(
+                                      controller: numberController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Number*',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (value){
+                                        String number=value; },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "You must fill number";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        try {
+                                          final result = await FilePicker.platform.pickFiles(
+                                            type: FileType.custom,
+                                            allowedExtensions: ['csv','pdf','xlsx'],
+                                          );
+
+                                          if (result != null && result.files.isNotEmpty) {
+                                            String? filePath = result.files.single.path;
+                                            if (filePath != null) {
+                                              File file = File(filePath);
+                                              String content = await file.readAsString();
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('CSV file uploaded successfully!')),
+                                              );
+                                            }
+                                          } else {
+                                            print("Aucun fichier sélectionné.");
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('No file selected.')),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          print("Erreur lors de la sélection du fichier : $e");
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Erreur lors du téléchargement du fichier.')),
+                                          );
                                         }
                                       },
-                                      child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
+
+                                      icon: Icon(Icons.upload_file),
+                                      label: Text("Upload list student"),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Color(0xFFB1C9EF),
                                       ),
                                     ),
+                                    SizedBox(height: 8),
+                                    SizedBox(height: 8),
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Level',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: ['tp', 'td']
+                                          .map((String value) => DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        level = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "You must fill level";
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   ],
-                                )
-                            );
-                          },
-                        ),
-                      ),
-                      Text(
-                        "add \nStudents ",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFF18185C),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Espacement externe avant le texte "Functionalities"
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "My Class",
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF18185C),
-                      ),
-                    ),
-                  ),
-                  // Espacement entre les deux textes
-                  SizedBox(width: 75),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context as BuildContext, '/3');
-                      print("Texte cliqué !");
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.all(7.0), // Espacement interne autour du texte
-                      child: Icon(Icons.last_page , color: Colors.blue,),
-                    ),
-                  ),
-                ],
-              ),
-        Expanded(
-            child: lclass.isEmpty
-                ? Center(child: Text('add classe '))
-            :GridView.builder(
-              scrollDirection: Axis.horizontal,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 2.0,
-                mainAxisSpacing: 2.0,
-                childAspectRatio: 1 / 2.5,
-              ),
-              itemCount: lclass.length,
-              itemBuilder: (context, index) {
-                final item = lclass[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: index.isEven ? Colors.blueAccent : Color(0xFF18185C),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(5, 5, 2, 0),
-                              child: Text(
-                                item['title']!,
-                                textAlign: TextAlign.start,
-                                style: TextStyle(
-                                  color: Color(0xFFFFFFFF),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
                                 ),
                               ),
                             ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.border_color_outlined,
-                                color: Color(0xFFFFFFFF),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              item['level']!,
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                color: Color(0xFFFFFFFF),
-                                fontSize: 16,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color: Color(0xFFFFFFFF),
-                                  ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    final dbc = Dtabase();
+                                    bool success = await dbc.insertGroup(
+                                        speciality!,
+                                        int.parse(level!),
+                                        int.parse(numberController.text !));
+                                    if (success) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text('The group was created successfully!')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error: Failed to create class.')),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFB1C9EF),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Other",
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF18185C),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 75),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context as BuildContext, '/4');
-                      print("Texte cliqué !");
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.all(7.0),
-                      child: Text(
-                        "See all",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Container(
-                    width: 200,
-                    height: 200,
-                    child:Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF628ECB),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: IconButton(
-                            iconSize: 30,
-                            icon: Icon(
-                              Icons.group_outlined,
-                              color: Color(0xFF18185C),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.teal.shade300, Colors.green.shade600],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
                             ),
-                            onPressed: (){
-
-                            },
-                          ),
+                          ],
                         ),
-                        Text(
-                          textAlign: TextAlign.center,
-                          "See all group",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.normal,
-                            color: Color(0xFF18185C),
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.users, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "Create Group",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  )
-                ],
-              )
-            ])
+                    InkWell(
+                      onTap: (){
+                        showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: Color(0xFFD5DEEF ),
+                              title: Text('Enter student Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
+                              content: SingleChildScrollView(
+                                child: Form(
+                                  key:_formKey ,
+                                  child: Column(
+                                    children: [
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Familly Name*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        controller:fanameContoller ,
+                                        validator: (value){
+                                          if(value==null|| value.isEmpty){
+                                            return "you must fill student Familly name";
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'First Name*',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        controller:finameContoller ,
+                                        validator: (value){
+                                          if(value==null|| value.isEmpty){
+                                            return "you must fill student first name";
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Speciality',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['Engineer', 'Licence', 'Master'].
+                                        map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        )).toList(),
+                                        onChanged: (value) {
+                                          speciality=value;
+                                        },
+                                        validator: (value){
+                                          if( value==null || value.isEmpty){
+                                            return " you must fill speciality";
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Level',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['1 ', '2', '3']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        )
+                                        ).toList(),
+                                        onChanged: (value) {
+                                          level=value;
+                                        },
+                                        validator: (value){
+                                          if( value==null || value.isEmpty){
+                                            return " you must fill level";
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Group number',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        items: ['1 ', '2', '3']
+                                            .map((String value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        )
+                                        ).toList(),
+                                        onChanged: (value) {
+                                          group=int.parse(value!);
+                                        },
+                                        validator: (value){
+                                          if( value==null || value.isEmpty){
+                                            return " you must fill group number";
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(height: 8),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      final dbc = Dtabase();
+                                      bool success = await dbc.insertStudent(finameContoller.text,
+                                          fanameContoller.text,
+                                          speciality!,
+                                          int.parse(level!),
+                                          group!);
+                                      if (success) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('The group was created successfully!')),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: Failed to create class.')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFFB1C9EF),
+                                  ),
+                                ),
+                              ],
+                            ));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.orange.shade300, Colors.red.shade600],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.userGraduate, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "Add Student",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: (){
+                        Navigator.pushNamed(context as BuildContext, '/3');
+                        print("Texte cliqué !");
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue.shade400, Colors.cyan.shade700],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.bookOpen, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "See All Classes",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(context as BuildContext, '/4');
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.green.shade300, Colors.green.shade700],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.peopleGroup, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "See All Groups",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    InkWell(
+                      onTap: () async {
+                        final result = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['csv', 'pdf', 'xlsx'],
+                        );
+
+                        if (result != null && result.files.isNotEmpty) {
+                          String? filePath = result.files.single.path;
+                          if (filePath != null) {
+                            var bytes = File(filePath).readAsBytesSync();
+                            var excel = Excel.decodeBytes(bytes);
+
+                            List<Map<String, String>> students = [];
+
+                            for (var table in excel.tables.keys) {
+                              List<Data?> headers = excel.tables[table]!.rows.first;
+
+                              for (int i = 1; i < excel.tables[table]!.rows.length; i++) {
+                                var row = excel.tables[table]!.rows[i];
+                                students.add({
+                                  "numero": row[0]?.value.toString() ?? '',
+                                  "nom": row[1]?.value.toString() ?? '',
+                                  "prenom": row[2]?.value.toString() ?? '',
+                                });
+                              }
+                            }
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${students.length} étudiants importés avec succès.')),
+                            );
+
+                            // TODO : Utilise ici la variable `students` pour affichage ou enregistrement
+                            print(students); // Affiche la liste dans la console pour debug
+                          }
+                        } else {
+                          print("Aucun fichier sélectionné.");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Aucun fichier sélectionné.')),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(16.0),
+                        margin: EdgeInsets.symmetric(vertical: 10.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.green.shade300, Colors.green.shade700],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 15.0,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.peopleGroup, size: 40.0, color: Colors.white),
+                            SizedBox(height: 10.0),
+                            Text(
+                              "Add student from file",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        )
     );
   }
 }
@@ -871,13 +874,13 @@ class _classInfo extends State<classInfo> {
   final dbc = Dtabase();
   List<Map<String, dynamic>> filteredClasses = [];
   List<Map<String, dynamic>> lclass = [];
-  String selectedFilter = 'None'; // Nouveau filtre pour stocker la sélection
+  String selectedFilter = 'None';
 
   @override
   void initState() {
     super.initState();
     _loadClasses();
-    searchController.addListener(_searchClasses); // Appeler uniquement la recherche
+    searchController.addListener(_searchClasses);
   }
 
   Future<void> _loadClasses() async {
@@ -894,11 +897,11 @@ class _classInfo extends State<classInfo> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Delete Class"),
-          content: Text("Are you sure you want to delete this class?"),
+          title: Text("Delete Class", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          content: Text("Are you sure you want to delete this class?", style: TextStyle(fontSize: 16)),
           actions: [
             TextButton(
-              child: Text("Cancel"),
+              child: Text("Cancel", style: TextStyle(color: Colors.blue)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -906,16 +909,12 @@ class _classInfo extends State<classInfo> {
             TextButton(
               child: Text("Delete", style: TextStyle(color: Colors.red)),
               onPressed: () async {
-                try {
-                  final db = Dtabase();
-                  await db.deleteClass(cid);
-                  setState(() {
-                    lclass = List.from(lclass)..removeWhere((classe) => classe['cid'] == cid);
-                    _filterClasses();  // Reappliquer le filtre après suppression
-                  });
-                } catch (e) {
-                  print("Error: $e");
-                }
+                final db = Dtabase();
+                await db.deleteClass(cid);
+                setState(() {
+                  lclass = List.from(lclass)..removeWhere((classe) => classe['cid'] == cid);
+                  _filterClasses();
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -935,33 +934,32 @@ class _classInfo extends State<classInfo> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Update Class"),
+          title: Text("Update Class", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: "Name"),
+                decoration: InputDecoration(labelText: "Name", labelStyle: TextStyle(fontSize: 16)),
               ),
               TextField(
                 controller: specialityController,
-                decoration: InputDecoration(labelText: "Speciality"),
+                decoration: InputDecoration(labelText: "Speciality", labelStyle: TextStyle(fontSize: 16)),
               ),
               TextField(
                 controller: levelController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Level"),
+                decoration: InputDecoration(labelText: "Level", labelStyle: TextStyle(fontSize: 16)),
               ),
               TextField(
                 controller: yearController,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(labelText: "Year"),
+                decoration: InputDecoration(labelText: "Year", labelStyle: TextStyle(fontSize: 16)),
               ),
             ],
           ),
           actions: [
             TextButton(
-              child: Text("Cancel"),
+              child: Text("Cancel", style: TextStyle(color: Colors.blue)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -977,7 +975,7 @@ class _classInfo extends State<classInfo> {
                   int.parse(levelController.text),
                   yearController.text,
                 );
-                _loadClasses(); // Recharger la liste après la mise à jour
+                _loadClasses();
                 Navigator.of(context).pop();
               },
             ),
@@ -987,29 +985,31 @@ class _classInfo extends State<classInfo> {
     );
   }
 
-  // Fonction de recherche (séparée du filtre)
+  // Recherche par nom, spécialité, niveau ou année
   void _searchClasses() {
     String query = searchController.text.toLowerCase();
     setState(() {
       filteredClasses = lclass.where((classe) {
         return classe['name'].toLowerCase().contains(query) ||
             classe['speciality'].toLowerCase().contains(query) ||
-            classe['level'].toString().contains(query);
+            classe['level'].toString().contains(query) ||
+            classe['year'].toString().contains(query);  // Recherche par année
       }).toList();
     });
   }
 
-  // Fonction de filtre (séparée de la recherche)
   void _filterClasses() {
     setState(() {
       if (selectedFilter == 'None') {
-        filteredClasses = lclass; // Aucun filtre
+        filteredClasses = lclass;
       } else if (selectedFilter == 'name') {
         filteredClasses = lclass..sort((a, b) => a['name'].compareTo(b['name']));
       } else if (selectedFilter == 'level') {
         filteredClasses = lclass..sort((a, b) => a['level'].compareTo(b['level']));
       } else if (selectedFilter == 'speciality') {
         filteredClasses = lclass..sort((a, b) => a['speciality'].compareTo(b['speciality']));
+      } else if (selectedFilter == 'year') {  // Tri par année
+        filteredClasses = lclass..sort((a, b) => a['year'].compareTo(b['year']));
       }
     });
   }
@@ -1018,21 +1018,14 @@ class _classInfo extends State<classInfo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 4,
-        backgroundColor: Color(0xFF18185C),
+        elevation: 6,
+        backgroundColor: Color(0xFF303F9F),
         titleSpacing: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            Icons.assignment,
-            color: Color(0xFFB1C9EF),
-            size: 28,
-          ),
+          child: Icon(Icons.assignment, color: Colors.white, size: 28),
         ),
-        title: Text(
-          "MY CLASSES",
-          style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 14),
-        ),
+        title: Text("MY CLASSES", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             onPressed: () {
@@ -1041,9 +1034,7 @@ class _classInfo extends State<classInfo> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     contentPadding: EdgeInsets.all(20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     backgroundColor: Color(0xFF2E2E6E),
                     content: Container(
                       decoration: BoxDecoration(
@@ -1056,7 +1047,7 @@ class _classInfo extends State<classInfo> {
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Search...',
-                          hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
+                          hintStyle: TextStyle(color: Colors.white),
                           prefixIcon: IconButton(
                             onPressed: () {
                               Navigator.of(context).pop();
@@ -1075,33 +1066,19 @@ class _classInfo extends State<classInfo> {
             icon: Icon(Icons.search),
           ),
           PopupMenuButton<String>(
-            icon: Icon(
-              Icons.filter_list,
-              color: Color(0xFFB1C9EF),
-            ),
+            icon: Icon(Icons.filter_list, color: Colors.white),
             onSelected: (value) {
               setState(() {
-                selectedFilter = value;  // Mise à jour du filtre sélectionné
+                selectedFilter = value;
               });
-              _filterClasses();  // Appliquer immédiatement le filtre
+              _filterClasses();
             },
             itemBuilder: (BuildContext context) => [
-              PopupMenuItem(
-                value: 'None',
-                child: Text('No Filter'),
-              ),
-              PopupMenuItem(
-                value: 'name',
-                child: Text('Filter by Name'),
-              ),
-              PopupMenuItem(
-                value: 'level',
-                child: Text('Filter by Level'),
-              ),
-              PopupMenuItem(
-                value: 'speciality',
-                child: Text('Filter by Speciality'),
-              ),
+              PopupMenuItem(value: 'None', child: Text('No Filter')),
+              PopupMenuItem(value: 'name', child: Text('Filter by Name')),
+              PopupMenuItem(value: 'level', child: Text('Filter by Level')),
+              PopupMenuItem(value: 'speciality', child: Text('Filter by Speciality')),
+              PopupMenuItem(value: 'year', child: Text('Filter by Year')),  // Filtrage par année
             ],
           ),
         ],
@@ -1109,7 +1086,7 @@ class _classInfo extends State<classInfo> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 1,
             childAspectRatio: 4 / 2,
           ),
@@ -1117,28 +1094,25 @@ class _classInfo extends State<classInfo> {
           itemBuilder: (context, index) {
             final classe = filteredClasses[index];
             return Card(
-              color: index.isEven ? Colors.blueAccent : Color(0xFF18185C),
+              color: index.isEven ? Color(0xFF3E4A8C) : Color(0xFF5F63A4),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(15),
               ),
-              elevation: 4,
+              elevation: 6,
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Name: ${classe['name']}',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB1C9EF)),
-                        ),
+                        Text('Name: ${classe['name']}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         Row(
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: Color(0xFFB1C9EF)),
+                              icon: Icon(Icons.edit, color: Colors.white),
                               onPressed: () {
                                 _showUpdateDialog(context, classe);
                               },
@@ -1153,12 +1127,12 @@ class _classInfo extends State<classInfo> {
                         ),
                       ],
                     ),
+                    SizedBox(height: 6),
+                    Text('Speciality: ${classe['speciality']}', style: TextStyle(color: Colors.white)),
                     SizedBox(height: 4),
-                    Text('Speciality: ${classe['speciality']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Level: ${classe['level']}', style: TextStyle(color: Colors.white)),
                     SizedBox(height: 4),
-                    Text('Level: ${classe['level']}', style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('Year: ${classe['year']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Year: ${classe['year']}', style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ),
@@ -1187,12 +1161,11 @@ class _groupInfo extends State<groupInfo> {
     searchController.addListener(_searchClasses); // Ajout du listener pour la recherche
   }
 
-  // Charger les classes depuis la base de données
   Future<void> loadClasses() async {
     final groups = await dbc.getGroup();
     setState(() {
       Lclass = groups;
-      filteredClasses = groups; // Initialiser la liste filtrée avec toutes les classes au début
+      filteredClasses = groups;
     });
   }
 
@@ -1208,7 +1181,6 @@ class _groupInfo extends State<groupInfo> {
     });
   }
 
-
   void _applyFilter(String filter) {
     setState(() {
       if (filter == 'Speciality') {
@@ -1222,18 +1194,21 @@ class _groupInfo extends State<groupInfo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 4,
-        backgroundColor: Color(0xFF18185C),
+        elevation: 6,
+        backgroundColor: Color(0xFF303F9F),
         titleSpacing: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Icon(
-            Icons.assignment,
+            Icons.group,
             color: Color(0xFFB1C9EF),
-            size: 28, // Agrandir l'icône
+            size: 28,
           ),
         ),
-        title: Text("MY GROUPS", style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold)),
+        title: Text(
+          "MY GROUPS",
+          style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -1299,41 +1274,53 @@ class _groupInfo extends State<groupInfo> {
           itemBuilder: (context, index) {
             final classe = filteredClasses[index];
             return GestureDetector(
-                onTap: () {
+              onTap: () {
                 Navigator.push(
-                context,
-                MaterialPageRoute(
-                builder: (context) =>student(groupId: filteredClasses[index])));
-
-
-            },
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Speciality: ${classe['speciality']}', style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('Level: ${classe['level']}', style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('Number: ${classe['number']}', style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                  ],
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => student(groupId: filteredClasses[index]),
+                  ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 6,
+                color: index.isEven ? Color(0xFF3E4A8C) : Color(0xFF5F63A4),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Speciality: ${classe['speciality']}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Level: ${classe['level']}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Number: ${classe['number']}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      SizedBox(height: 6),
+                    ],
+                  ),
                 ),
               ),
-            ));
+            );
           },
         ),
       ),
     );
   }
 }
+
 class student extends StatefulWidget{
   final Map<String, dynamic> groupId;
   student({Key? key, required this.groupId}) : super(key: key);
@@ -1512,23 +1499,29 @@ class Dtabase {
       onCreate: (Database db, int version) async {
         // Table "class"
         await db.execute(
-            'CREATE TABLE class ('
-                'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'name TEXT NOT NULL, '
-                'speciality TEXT NOT NULL, '
-                'level INTEGER NOT NULL, '
-                'year TEXT NOT NULL ,'
-                'commant Text '
-                ')'
-        );
+          'CREATE TABLE class ('
+              'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'name TEXT NOT NULL, '
+              'speciality TEXT NOT NULL, '
+              'level INTEGER NOT NULL, '
+              'year TEXT NOT NULL, '
+              'commant TEXT, '
+              'group_id INTEGER, '
+              'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
+              ')'
+            );
 
-        await db.execute(
-            'CREATE TABLE "group" ('
-                'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'number INTEGER, '
-                'speciality TEXT NOT NULL, '
-                'level INTEGER NOT NULL'
-                ')'
+
+
+            await db.execute(
+              ' CREATE TABLE "group" ('
+               ' gid INTEGER PRIMARY KEY AUTOINCREMENT,'
+               ' number INTEGER,'
+                'speciality TEXT NOT NULL,'
+               ' level INTEGER NOT NULL,'
+                'UNIQUE(number, speciality, level)'
+            ')'
+
         );
 
 
@@ -1543,7 +1536,7 @@ class Dtabase {
                 'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
                 ')'
         );
-
+        await db.execute("ALTER TABLE GROUP ADD COLUMN TYPE");
       },
     );
   }
@@ -1578,6 +1571,7 @@ class Dtabase {
           'number': number,
           'speciality': speciality,
           'level': level ,
+
         },
       );
       return true;
