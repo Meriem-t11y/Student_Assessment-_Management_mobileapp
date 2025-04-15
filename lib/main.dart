@@ -128,10 +128,10 @@ class _homePage extends State<HomePage>{
                 SizedBox(height: 20.0),
                 GridView.count(
                   shrinkWrap: true,
-                  crossAxisCount: 2,
+                  crossAxisCount: 1,
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
-                  childAspectRatio: 1.2,
+                  childAspectRatio: 4/2,
                   physics: NeverScrollableScrollPhysics(),
                   children: [
                     InkWell(
@@ -325,12 +325,12 @@ class _homePage extends State<HomePage>{
                               style: TextStyle(color: Color(0xFF18185C)),
                             ),
                             content: SingleChildScrollView(
-                              // Pour éviter le débordement
                               child: Form(
                                 key: _formKey,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
+                                    // Speciality Dropdown
                                     DropdownButtonFormField<String>(
                                       decoration: InputDecoration(
                                         labelText: 'Speciality',
@@ -353,6 +353,8 @@ class _homePage extends State<HomePage>{
                                       },
                                     ),
                                     SizedBox(height: 8),
+
+                                    // Level Dropdown
                                     DropdownButtonFormField<String>(
                                       decoration: InputDecoration(
                                         labelText: 'Level',
@@ -375,6 +377,8 @@ class _homePage extends State<HomePage>{
                                       },
                                     ),
                                     SizedBox(height: 8),
+
+                                    // Number Field
                                     TextFormField(
                                       controller: numberController,
                                       decoration: InputDecoration(
@@ -382,8 +386,6 @@ class _homePage extends State<HomePage>{
                                         border: OutlineInputBorder(),
                                       ),
                                       keyboardType: TextInputType.number,
-                                      onChanged: (value){
-                                        String number=value; },
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
                                           return "You must fill number";
@@ -392,66 +394,7 @@ class _homePage extends State<HomePage>{
                                       },
                                     ),
                                     SizedBox(height: 8),
-                                    ElevatedButton.icon(
-                                      onPressed: () async {
-                                        try {
-                                          final result = await FilePicker.platform.pickFiles(
-                                            type: FileType.custom,
-                                            allowedExtensions: ['csv','pdf','xlsx'],
-                                          );
 
-                                          if (result != null && result.files.isNotEmpty) {
-                                            String? filePath = result.files.single.path;
-                                            if (filePath != null) {
-                                              File file = File(filePath);
-                                              String content = await file.readAsString();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('CSV file uploaded successfully!')),
-                                              );
-                                            }
-                                          } else {
-                                            print("Aucun fichier sélectionné.");
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('No file selected.')),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          print("Erreur lors de la sélection du fichier : $e");
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Erreur lors du téléchargement du fichier.')),
-                                          );
-                                        }
-                                      },
-
-                                      icon: Icon(Icons.upload_file),
-                                      label: Text("Upload list student"),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFB1C9EF),
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    SizedBox(height: 8),
-                                    DropdownButtonFormField<String>(
-                                      decoration: InputDecoration(
-                                        labelText: 'Level',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      items: ['tp', 'td']
-                                          .map((String value) => DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
-                                      ))
-                                          .toList(),
-                                      onChanged: (value) {
-                                        level = value;
-                                      },
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return "You must fill level";
-                                        }
-                                        return null;
-                                      },
-                                    ),
                                   ],
                                 ),
                               ),
@@ -466,18 +409,18 @@ class _homePage extends State<HomePage>{
                                   if (_formKey.currentState!.validate()) {
                                     final dbc = Dtabase();
                                     bool success = await dbc.insertGroup(
-                                        speciality!,
-                                        int.parse(level!),
-                                        int.parse(numberController.text !));
+                                      speciality!,
+                                      int.parse(level!),
+                                      int.parse(numberController.text),'td'
+                                    );
                                     if (success) {
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text('The group was created successfully!')),
+                                        SnackBar(content: Text('The group was created successfully!')),
                                       );
                                     } else {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error: Failed to create class.')),
+                                        SnackBar(content: Text('Error: Failed to create group.')),
                                       );
                                     }
                                   }
@@ -526,6 +469,7 @@ class _homePage extends State<HomePage>{
                         ),
                       ),
                     ),
+
                     InkWell(
                       onTap: (){
                         showDialog(
@@ -778,48 +722,200 @@ class _homePage extends State<HomePage>{
                         ),
                       ),
                     ),
-
                     InkWell(
-                      onTap: () async {
-                        final result = await FilePicker.platform.pickFiles(
-                          type: FileType.custom,
-                          allowedExtensions: ['csv', 'pdf', 'xlsx'],
-                        );
 
-                        if (result != null && result.files.isNotEmpty) {
-                          String? filePath = result.files.single.path;
-                          if (filePath != null) {
+                      onTap: () async {
+                          try{
+                          showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                          backgroundColor: Color(0xFFD5DEEF),
+                          title: Text(
+                          'Enter group Informations',
+                          style: TextStyle(color: Color(0xFF18185C)),
+                          ),
+                          content: SingleChildScrollView(
+                          // Pour éviter le débordement
+                          child: Form(
+                          key: _formKey,
+                          child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                          DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                          labelText: 'Speciality',
+                          border: OutlineInputBorder(),
+                          ),
+                          items: ['Engineer', 'Licence', 'Master']
+                              .map((String value) => DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                          ))
+                              .toList(),
+                          onChanged: (value) {
+                          speciality = value;
+                          },
+                          validator: (value) {
+                          if (value == null || value.isEmpty) {
+                          return "You must fill speciality";
+                          }
+                          return null;
+                          },
+                          ),
+                          SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                          labelText: 'Level',
+                          border: OutlineInputBorder(),
+                          ),
+                          items: ['1', '2', '3']
+                              .map((String value) => DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                          ))
+                              .toList(),
+                          onChanged: (value) {
+                          level = value;
+                          },
+                          validator: (value) {
+                          if (value == null || value.isEmpty) {
+                          return "You must fill level";
+                          }
+                          return null;
+                          },
+                          ),
+                          SizedBox(height: 8),
+                          TextFormField(
+                          controller: numberController,
+                          decoration: InputDecoration(
+                          labelText: 'Number*',
+                          border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value){
+                          String number=value; },
+                          validator: (value) {
+                          if (value == null || value.isEmpty) {
+                          return "You must fill number";
+                          }
+                          return null;
+                          },
+                          ),
+                          SizedBox(height: 8),
+                          ElevatedButton.icon(
+                          onPressed: () async {
+
+                            final result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['csv', 'pdf', 'xlsx'],
+                            );
+
+                            if (result != null && result.files.isNotEmpty) {
+                            String? filePath = result.files.single.path;
+                            if (filePath != null) {
                             var bytes = File(filePath).readAsBytesSync();
                             var excel = Excel.decodeBytes(bytes);
 
                             List<Map<String, String>> students = [];
 
                             for (var table in excel.tables.keys) {
-                              List<Data?> headers = excel.tables[table]!.rows.first;
+                            List<Data?> headers = excel.tables[table]!.rows.first;
 
-                              for (int i = 1; i < excel.tables[table]!.rows.length; i++) {
-                                var row = excel.tables[table]!.rows[i];
-                                students.add({
-                                  "numero": row[0]?.value.toString() ?? '',
-                                  "nom": row[1]?.value.toString() ?? '',
-                                  "prenom": row[2]?.value.toString() ?? '',
-                                });
-                              }
+                            for (int i = 1; i < excel.tables[table]!.rows.length; i++) {
+                            var row = excel.tables[table]!.rows[i];
+
+
+                            String num= row[0]?.value.toString() ?? '';
+                            String nom= row[1]?.value.toString() ?? '';
+                            String prenom= row[2]?.value.toString() ?? '';
+                            final db=Dtabase();
+
+                            }
                             }
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${students.length} étudiants importés avec succès.')),
+                            SnackBar(content: Text('${students.length} étudiants importés avec succès.')),
                             );
-
-                            // TODO : Utilise ici la variable `students` pour affichage ou enregistrement
-                            print(students); // Affiche la liste dans la console pour debug
-                          }
-                        } else {
-                          print("Aucun fichier sélectionné.");
-                          ScaffoldMessenger.of(context).showSnackBar(
+                            print(students);
+                            }
+                            } else {
+                            print("Aucun fichier sélectionné.");
+                            ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Aucun fichier sélectionné.')),
+                            );
+                            }
+
+
+                            }
+
+                            ,icon: Icon(Icons.upload_file),
+                          label: Text("Upload list student"),
+                          style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFB1C9EF),
+                          ),
+                          ),
+                          SizedBox(height: 8),
+                          SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                          labelText: 'Level',
+                          border: OutlineInputBorder(),
+                          ),
+                          items: ['tp', 'td']
+                              .map((String value) => DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                          ))
+                              .toList(),
+                          onChanged: (value) {
+                          level = value;
+                          },
+                          validator: (value) {
+                          if (value == null || value.isEmpty) {
+                          return "You must fill level";
+                          }
+                          return null;
+                          },
+                          ),
+                          ],
+                          ),
+                          ),
+                          ),
+                          actions: [
+                          TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
+                          ),
+                          ElevatedButton(
+                          onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                          final dbc = Dtabase();
+                          bool success = await dbc.insertGroup(
+                          speciality!,
+                          int.parse(level!),
+                          int.parse(numberController.text !),'td');
+                          if (success) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                          content: Text('The group was created successfully!')),
                           );
-                        }
+                          } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: Failed to create class.')),
+                          );
+                          }
+                          }
+                          },
+                          child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
+                          style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFB1C9EF),
+                          ),
+                          ),
+                          ],
+                          ),
+                          );
+                          }catch(e) {print("sd");}
                       },
                       child: Container(
                         padding: EdgeInsets.all(16.0),
@@ -1158,7 +1254,7 @@ class _groupInfo extends State<groupInfo> {
   void initState() {
     super.initState();
     loadClasses();
-    searchController.addListener(_searchClasses); // Ajout du listener pour la recherche
+    searchController.addListener(_searchClasses);
   }
 
   Future<void> loadClasses() async {
@@ -1169,11 +1265,9 @@ class _groupInfo extends State<groupInfo> {
     });
   }
 
-  // Fonction de recherche
   void _searchClasses() {
     String query = searchController.text.toLowerCase();
     setState(() {
-      // Filtrer en fonction du texte saisi dans le champ de recherche
       filteredClasses = Lclass.where((classe) {
         return classe['speciality'].toLowerCase().contains(query) ||
             classe['level'].toString().contains(query);
@@ -1191,6 +1285,36 @@ class _groupInfo extends State<groupInfo> {
     });
   }
 
+
+  void _confirmDelete(int id) {
+    showDialog(
+      context: context as BuildContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF2E2E6E),
+          title: Text('Confirm Deletion', style: TextStyle(color: Colors.white)),
+          content: Text('Are you sure you want to delete this group?',
+              style: TextStyle(color: Colors.white)),
+          actions: [
+            TextButton(
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                await dbc.deleteGroup(id);
+                Navigator.pop(context);
+                await loadClasses();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1247,16 +1371,10 @@ class _groupInfo extends State<groupInfo> {
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list, color: Color(0xFFB1C9EF)),
-            onSelected: _applyFilter, // Applique le filtre sélectionné
+            onSelected: _applyFilter,
             itemBuilder: (BuildContext context) => [
-              PopupMenuItem(
-                value: 'Speciality',
-                child: Text('Filter by Speciality'),
-              ),
-              PopupMenuItem(
-                value: 'level',
-                child: Text('Filter by Level'),
-              ),
+              PopupMenuItem(value: 'Speciality', child: Text('Filter by Speciality')),
+              PopupMenuItem(value: 'level', child: Text('Filter by Level')),
             ],
           ),
         ],
@@ -1268,9 +1386,9 @@ class _groupInfo extends State<groupInfo> {
             crossAxisCount: 2,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
-            childAspectRatio: 1.2,
+            childAspectRatio: 1 ,
           ),
-          itemCount: filteredClasses.length, // Utilisation de filteredClasses pour afficher les éléments filtrés
+          itemCount: filteredClasses.length,
           itemBuilder: (context, index) {
             final classe = filteredClasses[index];
             return GestureDetector(
@@ -1283,9 +1401,7 @@ class _groupInfo extends State<groupInfo> {
                 );
               },
               child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 6,
                 color: index.isEven ? Color(0xFF3E4A8C) : Color(0xFF5F63A4),
                 child: Padding(
@@ -1308,7 +1424,80 @@ class _groupInfo extends State<groupInfo> {
                         'Number: ${classe['number']}',
                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                       ),
-                      SizedBox(height: 6),
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.white),
+                            onPressed: () {
+                              TextEditingController specialityController =
+                              TextEditingController(text: classe['speciality']);
+                              TextEditingController levelController =
+                              TextEditingController(text: classe['level'].toString());
+                              TextEditingController numberController =
+                              TextEditingController(text: classe['number'].toString());
+                              showDialog(
+                                context: context as BuildContext,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    backgroundColor: Color(0xFF2E2E6E),
+                                    title: Text('Edit Group', style: TextStyle(color: Colors.white)),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextField(
+                                          controller: specialityController,
+                                          decoration: InputDecoration(labelText: 'Speciality'),
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        TextField(
+                                          controller: levelController,
+                                          decoration: InputDecoration(labelText: 'Level'),
+                                          keyboardType: TextInputType.number,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        TextField(
+                                          controller: numberController,
+                                          decoration: InputDecoration(labelText: 'Number'),
+                                          keyboardType: TextInputType.number,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                      ElevatedButton(
+                                        child: Text('Update'),
+                                        onPressed: () async {
+                                          final dbc=Dtabase();
+
+                                          await dbc.updateGroup(
+                                            classe['id'],
+                                            specialityController.text.trim(),
+                                            int.tryParse(levelController.text) ?? 0,
+                                            int.tryParse(numberController.text) ?? 0,
+                                          );
+
+                                          Navigator.pop(context);
+                                          await loadClasses();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red[200]),
+                            onPressed: () => _confirmDelete(classe['id']),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -1457,7 +1646,9 @@ class _studentList extends State<student> {
                 IconButton(
                   icon: Icon(Icons.edit, color: Colors.blue),
                   onPressed: () {
-                    // Code pour mettre à jour l'étudiant
+                    final dbc=Dtabase();
+                    dbc.updateStudent(3, 'Ahmed Ben Ali', 'ahmed@example.com', 1);
+
                   },
                 ),
                 IconButton(
@@ -1474,7 +1665,6 @@ class _studentList extends State<student> {
     );
   }
 }
-
 class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
 
@@ -1492,38 +1682,34 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'db3.db');
+    String path = join(databasesPath, 'd7.db');
     return await openDatabase(
       path,
       version: 4,
       onCreate: (Database db, int version) async {
-        // Table "class"
         await db.execute(
-          'CREATE TABLE class ('
-              'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
-              'name TEXT NOT NULL, '
-              'speciality TEXT NOT NULL, '
-              'level INTEGER NOT NULL, '
-              'year TEXT NOT NULL, '
-              'commant TEXT, '
-              'group_id INTEGER, '
-              'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
-              ')'
-            );
-
-
-
-            await db.execute(
-              ' CREATE TABLE "group" ('
-               ' gid INTEGER PRIMARY KEY AUTOINCREMENT,'
-               ' number INTEGER,'
-                'speciality TEXT NOT NULL,'
-               ' level INTEGER NOT NULL,'
-                'UNIQUE(number, speciality, level)'
-            ')'
-
+            'CREATE TABLE class ('
+                'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'name TEXT NOT NULL, '
+                'speciality TEXT NOT NULL, '
+                'level INTEGER NOT NULL, '
+                'year TEXT NOT NULL, '
+                'commant TEXT, '
+                'group_id INTEGER, '
+                'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
+                ')'
         );
 
+        await db.execute(
+            'CREATE TABLE "group" ('
+                'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
+                'number INTEGER, '
+                'speciality TEXT NOT NULL, '
+                'level INTEGER NOT NULL, '
+                'type TEXT NOT NULL, '
+                'UNIQUE(number, speciality, level)'
+                ')'
+        );
 
         await db.execute(
             'CREATE TABLE student ('
@@ -1536,13 +1722,11 @@ class Dtabase {
                 'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
                 ')'
         );
-        await db.execute("ALTER TABLE GROUP ADD COLUMN TYPE");
       },
     );
   }
 
-  Future<bool> insertClass(String name, String speciality, int level,
-      String year) async {
+  Future<bool> insertClass(String name, String speciality, int level, String year) async {
     try {
       final db = await database;
       await db.insert(
@@ -1553,38 +1737,46 @@ class Dtabase {
           'level': level,
           'year': year,
         },
-       );
+      );
       return true;
     } catch (e) {
-      print('Erreur lors dinsertion de la classe : $e');
+      print('Erreur lors dinsertion de la classe : \$e');
       return false;
     }
   }
 
-  // Insert group
-  Future<bool> insertGroup(String speciality, int level, int number) async {
+  Future<bool> insertGroup(String speciality, int level, int number, String type) async {
     try {
       final db = await database;
+
+      List<Map<String, dynamic>> existingGroups = await db.query(
+        'group',
+        where: 'speciality = ? AND level = ? AND number = ?',
+        whereArgs: [speciality, level, number],
+      );
+
+      if (existingGroups.isNotEmpty) {
+        print('Ce groupe existe déjà.');
+        return false;
+      }
+
       await db.insert(
         'group',
         {
           'number': number,
           'speciality': speciality,
-          'level': level ,
-
+          'level': level,
+          'type': type,
         },
       );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion du groupe : $e');
+      print('Erreur lors de l\'insertion du groupe : \$e');
       return false;
     }
   }
 
-  // Insert student
-  Future<bool> insertStudent(String finame,
-      String famname, String speciality,
-      int level, int group) async {
+  Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
     try {
       final db = await database;
       await db.insert(
@@ -1599,25 +1791,40 @@ class Dtabase {
       );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion de l\'étudiant : $e');
+      print('Erreur lors de l\'insertion de l\'étudiant : \$e');
       return false;
     }
   }
 
-  // Get classes
   Future<List<Map<String, dynamic>>> getClasses() async {
     final db = await database;
     return await db.query('class');
   }
+  Future<void> updateGroup(int id, String speciality, int level, int number) async {
+    final db = await database;
+    await db.update(
+      'groups',
+      {
+        'speciality': speciality,
+        'level': level,
+        'number': number,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 
-  // Get groups
+
+  Future<void> deleteGroup(int id) async {
+    final db = await database;
+    await db.delete('groups', where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<List<Map<String, dynamic>>> getGroup() async {
     final db = await database;
     return await db.query('group');
   }
 
-
-  // Delete class
   Future<void> deleteClass(int cid) async {
     final db = await database;
     await db.delete(
@@ -1627,19 +1834,9 @@ class Dtabase {
     );
   }
 
-  // Delete group
-  Future<void> deleteGroup(int gid, String speciality, int level) async {
-    final db = await database;
-    await db.delete(
-      'group_table',
-      where: 'gid = ? AND speciality = ? AND level = ?',
-      whereArgs: [gid, speciality, level],
-    );
-  }
 
-  // Delete student
-  Future<void> deleteStudent(String finame, String famname, int groupId,
-      String speciality) async {
+
+  Future<void> deleteStudent(String finame, String famname, int groupId, String speciality) async {
     final db = await database;
     await db.delete(
       'student',
@@ -1648,8 +1845,7 @@ class Dtabase {
     );
   }
 
-  Future<void> updateClass(int cid, String name, String speciality, int level,
-      String year) async {
+  Future<void> updateClass(int cid, String name, String speciality, int level, String year) async {
     final db = await database;
     await db.update(
       'class',
@@ -1667,10 +1863,26 @@ class Dtabase {
   Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
     final db = await database;
     return await db.query(
-      'student',
+      'student', // Assure-toi que le nom de la table est correct
       where: 'group_id = ?',
       whereArgs: [groupId],
     );
   }
 
+  Future<void> updateStudent(int id, String name, String email, int groupId) async {
+    final db = await database;
+
+    await db.update(
+      'students',
+      {
+        'name': name,
+        'email': email,
+        'group_id': groupId,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
 }
+
