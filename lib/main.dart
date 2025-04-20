@@ -1109,6 +1109,75 @@ class _classInfo extends State<classInfo> {
       }
     });
   }
+  void _associateGroupToClass(BuildContext context, Map<String, dynamic> classe) async {
+    // Récupère les groupes disponibles dans la base de données
+    final groups = await Dtabase().getGroup(); // Récupère la liste des groupes
+    int? selectedGroupId;
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Text("Associer la classe '${classe['name']}' à un groupe"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<int>(
+                    isExpanded: true,
+                    hint: Text("Choisir un groupe"),
+                    value: selectedGroupId,
+                    items: groups.map<DropdownMenuItem<int>>((group) {
+                      return DropdownMenuItem<int>(
+                        value: group['gid'],
+                        child: Text("Groupe ${group['number']} - ${group['speciality']} - L${group['level']}"),
+                      );
+                    }).toList(),
+                    onChanged: (int? value) {
+                      setState(() {
+                        selectedGroupId = value;
+                      });
+                    },
+                  ),
+                  // Affiche le groupe sélectionné, si présent
+                  if (selectedGroupId != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text("Groupe sélectionné: ${selectedGroupId!}"),
+                    ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Annuler"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (selectedGroupId != null) {
+                  // Associe le groupe à la classe dans la base de données
+                  await Dtabase().associateGroupToClass(classe['cid'], selectedGroupId!);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Classe associée au groupe avec succès")),
+                  );
+                } else {
+                  // Affiche un message si aucun groupe n'est sélectionné
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Veuillez sélectionner un groupe")),
+                  );
+                }
+              },
+              child: Text("Associer"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1219,6 +1288,14 @@ class _classInfo extends State<classInfo> {
                                 _showDeleteDialog(context, classe['cid']);
                               },
                             ),
+                            IconButton(
+                              icon: Icon(Icons.link, color: Colors.lightGreenAccent),
+                              tooltip: 'Associate group to class',
+                              onPressed: () {
+                                _associateGroupToClass(context,classe);
+                              },
+                            ),
+
                           ],
                         ),
                       ],
@@ -1881,6 +1958,15 @@ class Dtabase {
       },
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+  Future<void> associateGroupToClass(int classId, int groupId) async {
+    final db = await database;
+    await db.update(
+      'class',
+      {'group_id': groupId},
+      where: 'cid = ?',
+      whereArgs: [classId],
     );
   }
 
