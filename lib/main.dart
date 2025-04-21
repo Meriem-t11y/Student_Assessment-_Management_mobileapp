@@ -1390,6 +1390,76 @@ class _groupInfo extends State<groupInfo> {
       },
     );
   }
+  int ?i;
+  void _showGroupOptionsDialog(BuildContext context, int groupId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Choisissez une option"),
+        content: Text("Voulez-vous voir la liste des étudiants ou les classes associées ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),  // Ferme le dialogue
+            child: Text("Annuler"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  builder: (context) => student(groupId: filteredClasses[i!]),
+              ),
+              );
+
+            },
+            child: Text("Voir la liste des étudiants"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);  // Ferme le dialogue
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClassesListScreen(groupId: groupId),  // Ecran des classes associées
+                ),
+              );
+            },
+            child: Text("Voir les classes"),
+          ),
+        ],
+      ),
+    );
+  }
+  Future<void> _confirmDelete2(context ,int groupId) async {
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF2E2E6E),
+        title: Text("Confirm Deletion", style: TextStyle(color: Colors.white)),
+        content: Text("Do you really want to delete this group?", style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Delete", style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final db = Dtabase();
+      await db.deleteGroup(groupId);
+      await loadClasses(); // Recharge la liste après suppression
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Group deleted")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1470,12 +1540,9 @@ class _groupInfo extends State<groupInfo> {
             final classe = filteredClasses[index];
             return GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => student(groupId: filteredClasses[index]),
-                  ),
-                );
+                i=index;
+                _showGroupOptionsDialog(context, classe['gid']);
+
               },
               child: Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1507,71 +1574,72 @@ class _groupInfo extends State<groupInfo> {
                         children: [
                           IconButton(
                             icon: Icon(Icons.edit, color: Colors.white),
-                            onPressed: () {
-                              TextEditingController specialityController =
-                              TextEditingController(text: classe['speciality']);
-                              TextEditingController levelController =
-                              TextEditingController(text: classe['level'].toString());
-                              TextEditingController numberController =
-                              TextEditingController(text: classe['number'].toString());
-                              showDialog(
-                                context: context as BuildContext,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    backgroundColor: Color(0xFF2E2E6E),
-                                    title: Text('Edit Group', style: TextStyle(color: Colors.white)),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        TextField(
-                                          controller: specialityController,
-                                          decoration: InputDecoration(labelText: 'Speciality'),
-                                          style: TextStyle(color: Colors.white),
+                              onPressed: () {
+                                TextEditingController specialityController =
+                                TextEditingController(text: classe['speciality']);
+                                TextEditingController levelController =
+                                TextEditingController(text: classe['level'].toString());
+                                TextEditingController numberController =
+                                TextEditingController(text: classe['number'].toString());
+
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: Color(0xFF2E2E6E),
+                                      title: Text('Modifier le groupe', style: TextStyle(color: Colors.white)),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          TextField(
+                                            controller: specialityController,
+                                            decoration: InputDecoration(labelText: 'Spécialité'),
+                                            style: TextStyle(color: Colors.white),
+                                          ),
+                                          TextField(
+                                            controller: levelController,
+                                            decoration: InputDecoration(labelText: 'Niveau'),
+                                            keyboardType: TextInputType.number,
+                                            style: TextStyle(color: Colors.white),
+                                          ),
+                                          TextField(
+                                            controller: numberController,
+                                            decoration: InputDecoration(labelText: 'Numéro'),
+                                            keyboardType: TextInputType.number,
+                                            style: TextStyle(color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: Text('Annuler', style: TextStyle(color: Colors.grey)),
                                         ),
-                                        TextField(
-                                          controller: levelController,
-                                          decoration: InputDecoration(labelText: 'Level'),
-                                          keyboardType: TextInputType.number,
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        TextField(
-                                          controller: numberController,
-                                          decoration: InputDecoration(labelText: 'Number'),
-                                          keyboardType: TextInputType.number,
-                                          style: TextStyle(color: Colors.white),
+                                        ElevatedButton(
+                                          onPressed: () async {
+                                            final db = Dtabase(); // instancier ta classe de base de données
+                                            await db.updateGroup(
+                                              classe['gid'],
+                                              specialityController.text.trim(),
+                                              int.tryParse(levelController.text.trim()) ?? 0,
+                                              int.tryParse(numberController.text.trim()) ?? 0,
+                                            );
+
+                                            Navigator.pop(context);
+                                            await loadClasses(); // Recharge la liste après mise à jour
+                                          },
+                                          child: Text('Modifier'),
                                         ),
                                       ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-                                        onPressed: () => Navigator.pop(context),
-                                      ),
-                                      ElevatedButton(
-                                        child: Text('Update'),
-                                        onPressed: () async {
-                                          final dbc=Dtabase();
+                                    );
+                                  },
+                                );
+                              },
 
-                                          await dbc.updateGroup(
-                                            classe['id'],
-                                            specialityController.text.trim(),
-                                            int.tryParse(levelController.text) ?? 0,
-                                            int.tryParse(numberController.text) ?? 0,
-                                          );
-
-                                          Navigator.pop(context);
-                                          await loadClasses();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
                           ),
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red[200]),
-                            onPressed: () => _confirmDelete(classe['id']),
+                            onPressed:() => _confirmDelete2(context,classe['gid']),
                           ),
                         ],
                       ),
@@ -1586,22 +1654,151 @@ class _groupInfo extends State<groupInfo> {
     );
   }
 }
+class ClassesListScreen extends StatefulWidget {
+  final int groupId;
 
-class student extends StatefulWidget{
+  ClassesListScreen({required this.groupId});
+
+  @override
+  _ClassesListScreenState createState() => _ClassesListScreenState();
+}
+
+
+class _ClassesListScreenState extends State<ClassesListScreen> {
+  late Future<List<Map<String, dynamic>>> _classesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _classesFuture = Dtabase().getClassesByGroup(widget.groupId);
+  }
+
+  Future<void> loadClasses() async {
+    setState(() {
+      _classesFuture = Dtabase().getClassesByGroup(widget.groupId);
+    });
+  }
+
+  // Fonction pour afficher la boîte de dialogue de confirmation
+  Future<void> _showDeleteConfirmationDialog(BuildContext context, int groupId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation de suppression'),
+          content: Text('Êtes-vous sûr de vouloir supprimer cette association de groupe ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final dbc = Dtabase();
+                await dbc.removeAllClassesFromGroup(groupId);
+
+                await loadClasses(); // Recharge les classes après la suppression
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Association supprimée avec succès")),
+                );
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('Supprimer', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Classes Associées"),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>( // FutureBuilder qui attend les classes associées
+        future: _classesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Erreur: ${snapshot.error}"));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("Aucune classe associée à ce groupe"));
+          }
+
+          final classes = snapshot.data!;
+
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 1,
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
+              childAspectRatio: 3,
+            ),
+            itemCount: classes.length,
+            itemBuilder: (context, index) {
+              final classe = classes[index];
+              return Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 6,
+                color: index.isEven ? Color(0xFF3E4A8C) : Color(0xFF5F63A4),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Class Name: ${classe['name']}',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          // Affiche la boîte de dialogue de confirmation avant de supprimer
+                          await _showDeleteConfirmationDialog(context, widget.groupId);
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: Text("Supprimer l'association"),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class student extends StatefulWidget {
   final Map<String, dynamic> groupId;
   student({Key? key, required this.groupId}) : super(key: key);
-  _studentList createState()=> _studentList(groupId: groupId);
 
+  @override
+  _StudentList createState() => _StudentList(groupId: groupId);
 }
-class _studentList extends State<student> {
+
+class _StudentList extends State<student> {
   final Map<String, dynamic> groupId;
-  _studentList({Key? key, required this.groupId});
+  _StudentList({Key? key, required this.groupId});
+
   TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> students = [];
   List<Map<String, dynamic>> filteredStudents = [];
 
   Future<void> loadStudents() async {
-    final db=Dtabase();
+    final db = Dtabase();
     final studentsList = await db.getStudentsByGroup(groupId['gid']);
     setState(() {
       students = studentsList;
@@ -1629,6 +1826,40 @@ class _studentList extends State<student> {
         filteredStudents.sort((a, b) => a['level'].compareTo(b['level']));
       }
     });
+  }
+
+  // Fonction pour afficher la boîte de dialogue de confirmation pour la suppression
+  Future<void> _showDeleteConfirmationDialog(BuildContext context, int studentId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation de suppression'),
+          content: Text('Êtes-vous sûr de vouloir supprimer cet étudiant ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+              },
+              child: Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final db = Dtabase();
+                await db.deleteStudent(studentId ); // Code pour supprimer l'étudiant
+                await loadStudents(); // Recharge les étudiants après la suppression
+                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Étudiant supprimé avec succès")),
+                );
+              },
+              child: Text('Supprimer', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -1723,15 +1954,16 @@ class _studentList extends State<student> {
                 IconButton(
                   icon: Icon(Icons.edit, color: Colors.blue),
                   onPressed: () {
-                    final dbc=Dtabase();
-                    dbc.updateStudent(3, 'Ahmed Ben Ali', 'ahmed@example.com', 1);
-
+                    final db = Dtabase();
+                    db.updateStudent(3, 'Ahmed Ben Ali', 'ahmed@example.com', 1);
+                    // Ajoute ici ton code pour éditer un étudiant
                   },
                 ),
                 IconButton(
                   icon: Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
-                    // Code pour supprimer l'étudiant
+                    // Affiche la boîte de dialogue de confirmation avant de supprimer
+                    _showDeleteConfirmationDialog(context, student['id']); // Assurez-vous que l'ID de l'étudiant est accessible
                   },
                 ),
               ],
@@ -1742,6 +1974,8 @@ class _studentList extends State<student> {
     );
   }
 }
+
+
 class Dtabase {
   static final Dtabase _instance = Dtabase._internal();
 
@@ -1759,167 +1993,73 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'd7.db');
+    String path = join(databasesPath, 'ab.db');
     return await openDatabase(
       path,
       version: 4,
       onCreate: (Database db, int version) async {
-        await db.execute(
-            'CREATE TABLE class ('
-                'cid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'name TEXT NOT NULL, '
-                'speciality TEXT NOT NULL, '
-                'level INTEGER NOT NULL, '
-                'year TEXT NOT NULL, '
-                'commant TEXT, '
-                'group_id INTEGER, '
-                'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
-                ')'
-        );
+        await db.execute('''
+          CREATE TABLE class (
+            cid INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            speciality TEXT NOT NULL,
+            level INTEGER NOT NULL,
+            year TEXT NOT NULL,
+            commant TEXT
+          )
+        ''');
 
-        await db.execute(
-            'CREATE TABLE "group" ('
-                'gid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'number INTEGER, '
-                'speciality TEXT NOT NULL, '
-                'level INTEGER NOT NULL, '
-                'type TEXT NOT NULL, '
-                'UNIQUE(number, speciality, level)'
-                ')'
-        );
+        await db.execute('''
+          CREATE TABLE "group" (
+            gid INTEGER PRIMARY KEY AUTOINCREMENT,
+            number INTEGER,
+            speciality TEXT NOT NULL,
+            level INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            UNIQUE(number, speciality, level)
+          )
+        ''');
 
-        await db.execute(
-            'CREATE TABLE student ('
-                'sid INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'finame TEXT NOT NULL, '
-                'famname TEXT NOT NULL, '
-                'speciality TEXT NOT NULL, '
-                'level INTEGER NOT NULL, '
-                'group_id INTEGER NOT NULL, '
-                'FOREIGN KEY(group_id) REFERENCES "group"(gid)'
-                ')'
-        );
+        await db.execute('''
+          CREATE TABLE student (
+            sid INTEGER PRIMARY KEY AUTOINCREMENT,
+            finame TEXT NOT NULL,
+            famname TEXT NOT NULL,
+            speciality TEXT NOT NULL,
+            level INTEGER NOT NULL,
+            group_id INTEGER NOT NULL,
+            FOREIGN KEY(group_id) REFERENCES "group"(gid)
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE class_group (
+            class_id INTEGER,
+            group_id INTEGER,
+            FOREIGN KEY(class_id) REFERENCES class(cid),
+            FOREIGN KEY(group_id) REFERENCES "group"(gid),
+            PRIMARY KEY (class_id, group_id)
+          )
+        ''');
       },
     );
   }
 
+  // --- Classes ---
   Future<bool> insertClass(String name, String speciality, int level, String year) async {
     try {
       final db = await database;
-      await db.insert(
-        'class',
-        {
-          'name': name,
-          'speciality': speciality,
-          'level': level,
-          'year': year,
-        },
-      );
-      return true;
-    } catch (e) {
-      print('Erreur lors dinsertion de la classe : \$e');
-      return false;
-    }
-  }
-
-  Future<bool> insertGroup(String speciality, int level, int number, String type) async {
-    try {
-      final db = await database;
-
-      List<Map<String, dynamic>> existingGroups = await db.query(
-        'group',
-        where: 'speciality = ? AND level = ? AND number = ?',
-        whereArgs: [speciality, level, number],
-      );
-
-      if (existingGroups.isNotEmpty) {
-        print('Ce groupe existe déjà.');
-        return false;
-      }
-
-      await db.insert(
-        'group',
-        {
-          'number': number,
-          'speciality': speciality,
-          'level': level,
-          'type': type,
-        },
-      );
-      return true;
-    } catch (e) {
-      print('Erreur lors de l\'insertion du groupe : \$e');
-      return false;
-    }
-  }
-
-  Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
-    try {
-      final db = await database;
-      await db.insert(
-        'student',
-        {
-          'finame': finame,
-          'famname': famname,
-          'speciality': speciality,
-          'level': level,
-          'group_id': group,
-        },
-      );
-      return true;
-    } catch (e) {
-      print('Erreur lors de l\'insertion de l\'étudiant : \$e');
-      return false;
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getClasses() async {
-    final db = await database;
-    return await db.query('class');
-  }
-  Future<void> updateGroup(int id, String speciality, int level, int number) async {
-    final db = await database;
-    await db.update(
-      'groups',
-      {
+      await db.insert('class', {
+        'name': name,
         'speciality': speciality,
         'level': level,
-        'number': number,
-      },
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-
-  Future<void> deleteGroup(int id) async {
-    final db = await database;
-    await db.delete('groups', where: 'id = ?', whereArgs: [id]);
-  }
-
-  Future<List<Map<String, dynamic>>> getGroup() async {
-    final db = await database;
-    return await db.query('group');
-  }
-
-  Future<void> deleteClass(int cid) async {
-    final db = await database;
-    await db.delete(
-      'class',
-      where: 'cid = ?',
-      whereArgs: [cid],
-    );
-  }
-
-
-
-  Future<void> deleteStudent(String finame, String famname, int groupId, String speciality) async {
-    final db = await database;
-    await db.delete(
-      'student',
-      where: 'finame = ? AND famname = ? AND group_id = ? AND speciality = ?',
-      whereArgs: [finame, famname, groupId, speciality],
-    );
+        'year': year,
+      });
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion de la classe : $e');
+      return false;
+    }
   }
 
   Future<void> updateClass(int cid, String name, String speciality, int level, String year) async {
@@ -1937,18 +2077,90 @@ class Dtabase {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
+  Future<void> deleteClass(int cid) async {
     final db = await database;
-    return await db.query(
-      'student', // Assure-toi que le nom de la table est correct
-      where: 'group_id = ?',
-      whereArgs: [groupId],
+    await db.delete('class', where: 'cid = ?', whereArgs: [cid]);
+    await db.delete('class_group', where: 'class_id = ?', whereArgs: [cid]);
+  }
+
+  Future<List<Map<String, dynamic>>> getClasses() async {
+    final db = await database;
+    return await db.query('class');
+  }
+
+  // --- Groups ---
+  Future<bool> insertGroup(String speciality, int level, int number, String type) async {
+    try {
+      final db = await database;
+      List<Map<String, dynamic>> existingGroups = await db.query(
+        'group',
+        where: 'speciality = ? AND level = ? AND number = ?',
+        whereArgs: [speciality, level, number],
+      );
+
+      if (existingGroups.isNotEmpty) {
+        print('Ce groupe existe déjà.');
+        return false;
+      }
+
+      await db.insert('group', {
+        'number': number,
+        'speciality': speciality,
+        'level': level,
+        'type': type,
+      });
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion du groupe : $e');
+      return false;
+    }
+  }
+
+  Future<void> updateGroup(int id, String speciality, int level, int number) async {
+    final db = await database;
+    await db.update(
+      'group',
+      {
+        'speciality': speciality,
+        'level': level,
+        'number': number,
+      },
+      where: 'gid = ?',
+      whereArgs: [id],
     );
+  }
+
+  Future<void> deleteGroup(int id) async {
+    final db = await database;
+    await db.delete('group', where: 'gid = ?', whereArgs: [id]);
+    await db.delete('class_group', where: 'group_id = ?', whereArgs: [id]);
+  }
+
+  Future<List<Map<String, dynamic>>> getGroup() async {
+    final db = await database;
+    return await db.query('group');
+  }
+
+  // --- Students ---
+  Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
+    try {
+      final db = await database;
+      await db.insert('student', {
+        'finame': finame,
+        'famname': famname,
+        'speciality': speciality,
+        'level': level,
+        'group_id': group,
+      });
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion de l\'étudiant : $e');
+      return false;
+    }
   }
 
   Future<void> updateStudent(int id, String name, String email, int groupId) async {
     final db = await database;
-
     await db.update(
       'students',
       {
@@ -1960,15 +2172,69 @@ class Dtabase {
       whereArgs: [id],
     );
   }
+
+  Future<void> deleteStudent(int studentId) async {
+    final db = await database;
+    try {
+      await db.delete('students', where: 'id = ?', whereArgs: [studentId]);
+    } catch (e) {
+      print("Erreur lors de la suppression de l'étudiant: $e");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
+    final db = await database;
+    return await db.query('student', where: 'group_id = ?', whereArgs: [groupId]);
+  }
+
+  // --- Classe & Groupe relation ---
   Future<void> associateGroupToClass(int classId, int groupId) async {
     final db = await database;
-    await db.update(
-      'class',
-      {'group_id': groupId},
-      where: 'cid = ?',
-      whereArgs: [classId],
+    await db.insert(
+      'class_group',
+      {
+        'class_id': classId,
+        'group_id': groupId,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
+  Future<void> removeGroupFromClass(int classId, int groupId) async {
+    final db = await database;
+    await db.delete(
+      'class_group',
+      where: 'class_id = ? AND group_id = ?',
+      whereArgs: [classId, groupId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getGroupsByClass(int classId) async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT "group".* FROM "group"
+      INNER JOIN class_group ON class_group.group_id = "group".gid
+      WHERE class_group.class_id = ?
+    ''', [classId]);
+  }
+
+  Future<List<Map<String, dynamic>>> getClassesByGroup(int groupId) async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT class.* FROM class
+      INNER JOIN class_group ON class_group.class_id = class.cid
+      WHERE class_group.group_id = ?
+    ''', [groupId]);
+  }
+
+  Future<void> removeAllGroupsFromClass(int classId) async {
+    final db = await database;
+    await db.delete('class_group', where: 'class_id = ?', whereArgs: [classId]);
+  }
+
+  Future<void> removeAllClassesFromGroup(int groupId) async {
+    final db = await database;
+    await db.delete('class_group', where: 'group_id = ?', whereArgs: [groupId]);
+  }
 }
 
