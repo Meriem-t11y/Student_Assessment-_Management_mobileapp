@@ -12,7 +12,7 @@ void main() {
   runApp(
       MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute:'/' ,
+        initialRoute:'/1h' ,
         routes: {
           '/1h': (context) => firstPage(),
           '/': (context) =>HomePage(),
@@ -31,7 +31,7 @@ class firstPage extends StatefulWidget{
 class firstPageState extends State<firstPage> {
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
+    Timer(Duration(seconds: 1), () {
       Navigator.pushNamed(context as BuildContext, '/');
     });
   }
@@ -47,13 +47,13 @@ class firstPageState extends State<firstPage> {
     );
   }
 }
-
 class HomePage extends StatefulWidget{
   _homePage createState() => _homePage();
 
 }
 
 class _homePage extends State<HomePage>{
+
   TextEditingController searchcontroller=TextEditingController() ,
       numberController=TextEditingController(),
       nameContoller=TextEditingController(),
@@ -111,7 +111,7 @@ class _homePage extends State<HomePage>{
           flexibleSpace: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF18185C), Color(0xFF3E4DB5)],
+                colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -129,8 +129,8 @@ class _homePage extends State<HomePage>{
                 GridView.count(
                   shrinkWrap: true,
                   crossAxisCount: 1,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
+                  crossAxisSpacing: 1,
+                  mainAxisSpacing: 5,
                   childAspectRatio: 4/2,
                   physics: NeverScrollableScrollPhysics(),
                   children: [
@@ -284,7 +284,7 @@ class _homePage extends State<HomePage>{
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.purple.shade300, Colors.blue.shade600],
+                            colors: [Colors.purple.shade300, Colors.blue.shade300],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -394,6 +394,28 @@ class _homePage extends State<HomePage>{
                                       },
                                     ),
                                     SizedBox(height: 8),
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Level',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: ['tp', 'td']
+                                          .map((String value) => DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        type = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "You must fill level";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    SizedBox(height: 8),
 
                                   ],
                                 ),
@@ -411,7 +433,7 @@ class _homePage extends State<HomePage>{
                                     bool success = await dbc.insertGroup(
                                       speciality!,
                                       int.parse(level!),
-                                      int.parse(numberController.text),'td'
+                                      int.parse(numberController.text),type!
                                     );
                                     if (success) {
                                       Navigator.pop(context);
@@ -439,7 +461,7 @@ class _homePage extends State<HomePage>{
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.teal.shade300, Colors.green.shade600],
+                            colors: [Colors.blue.shade300,Colors.pink.shade300 , ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -469,151 +491,171 @@ class _homePage extends State<HomePage>{
                         ),
                       ),
                     ),
-
                     InkWell(
                       onTap: (){
                         showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              backgroundColor: Color(0xFFD5DEEF ),
-                              title: Text('Enter student Informations ',style: TextStyle(color:Color(0xFF18185C) ),),
-                              content: SingleChildScrollView(
-                                child: Form(
-                                  key:_formKey ,
-                                  child: Column(
-                                    children: [
-                                      TextFormField(
-                                        decoration: InputDecoration(
-                                          labelText: 'Familly Name*',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        controller:fanameContoller ,
-                                        validator: (value){
-                                          if(value==null|| value.isEmpty){
-                                            return "you must fill student Familly name";
-                                          }
-                                        },
+                          context: context,
+                          builder: (context) {
+                            int? selectedGroupId;
+                            final numberController = TextEditingController();
+                            final fanameController = TextEditingController();
+                            final finameController = TextEditingController();
+                            final _formKey = GlobalKey<FormState>();
+
+                            return FutureBuilder<List<Map<String, dynamic>>>(
+                              future: Dtabase().getGroup(), // 👈 Ta méthode pour récupérer les groupes
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                }
+
+                                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  return AlertDialog(
+                                    title: Text("Aucun groupe trouvé"),
+                                    content: Text("Veuillez d'abord créer un groupe."),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text("Fermer"),
                                       ),
-                                      SizedBox(height: 8),
-                                      TextFormField(
-                                        decoration: InputDecoration(
-                                          labelText: 'First Name*',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        controller:finameContoller ,
-                                        validator: (value){
-                                          if(value==null|| value.isEmpty){
-                                            return "you must fill student first name";
-                                          }
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
-                                      DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: 'Speciality',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: ['Engineer', 'Licence', 'Master'].
-                                        map((String value) => DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        )).toList(),
-                                        onChanged: (value) {
-                                          speciality=value;
-                                        },
-                                        validator: (value){
-                                          if( value==null || value.isEmpty){
-                                            return " you must fill speciality";
-                                          }
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
-                                      DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: 'Level',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: ['1 ', '2', '3']
-                                            .map((String value) => DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        )
-                                        ).toList(),
-                                        onChanged: (value) {
-                                          level=value;
-                                        },
-                                        validator: (value){
-                                          if( value==null || value.isEmpty){
-                                            return " you must fill level";
-                                          }
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
-                                      DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: 'Group number',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: ['1 ', '2', '3']
-                                            .map((String value) => DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        )
-                                        ).toList(),
-                                        onChanged: (value) {
-                                          group=int.parse(value!);
-                                        },
-                                        validator: (value){
-                                          if( value==null || value.isEmpty){
-                                            return " you must fill group number";
-                                          }
-                                        },
-                                      ),
-                                      SizedBox(height: 8),
                                     ],
+                                  );
+                                }
+
+                                final groups = snapshot.data!;
+
+                                return AlertDialog(
+                                  backgroundColor: Color(0xFFD5DEEF),
+                                  title: Text("Ajouter un étudiant", style: TextStyle(color: Color(0xFF18185C))),
+                                  content: StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return SingleChildScrollView(
+                                        child: Form(
+                                          key: _formKey,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              TextFormField(
+                                                controller: numberController,
+                                                keyboardType: TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Student Number*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return "Please enter the student number";
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                              SizedBox(height: 8),
+                                              TextFormField(
+                                                controller: fanameController,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Family Name*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return "Please enter the family name";
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                              SizedBox(height: 8),
+                                              TextFormField(
+                                                controller: finameController,
+                                                decoration: InputDecoration(
+                                                  labelText: 'First Name*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                validator: (value) {
+                                                  if (value == null || value.isEmpty) {
+                                                    return "Please enter the first name";
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                              SizedBox(height: 8),
+                                              DropdownButtonFormField<int>(
+                                                value: selectedGroupId,
+                                                isExpanded: true,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Select Group*',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                items: groups.map((group) {
+                                                  return DropdownMenuItem<int>(
+                                                    value: group['gid'], // ou 'id' selon ta colonne
+                                                    child: Text("Groupe ${group['number']} - ${group['speciality']} - n:${group['level']} -${group['type']}"),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    selectedGroupId = value;
+                                                  });
+                                                },
+                                                validator: (value) {
+                                                  if (value == null) {
+                                                    return "Please select a group";
+                                                  }
+                                                  return null;
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('Annuler' ,style: TextStyle(color : Color(0xFF18185C))),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      final dbc = Dtabase();
-                                      bool success = await dbc.insertStudent(finameContoller.text,
-                                          fanameContoller.text,
-                                          speciality!,
-                                          int.parse(level!),
-                                          group!);
-                                      if (success) {
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('The group was created successfully!')),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Error: Failed to create class.')),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: Text('Valider',style: TextStyle(color : Color(0xFF18185C))),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFFB1C9EF),
-                                  ),
-                                ),
-                              ],
-                            ));
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text("Annuler"),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          bool success = await Dtabase().insertStudent(
+                                            int.parse(numberController.text),
+                                            finameController.text,
+                                            fanameController.text,
+                                            selectedGroupId !,
+                                          );
+                                          if (success) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("Étudiant ajouté avec succès")),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("Erreur lors de l’ajout")),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      child: Text("Valider"),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xFFB1C9EF),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
+
+
+
                       },
                       child: Container(
                         padding: EdgeInsets.all(16.0),
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.orange.shade300, Colors.red.shade600],
+                            colors: [Colors.pink.shade200 ,Colors.purple.shade600],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -653,7 +695,7 @@ class _homePage extends State<HomePage>{
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.blue.shade400, Colors.cyan.shade700],
+                            colors: [Colors.purple.shade400,Colors.blue.shade400],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -692,7 +734,7 @@ class _homePage extends State<HomePage>{
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade300, Colors.green.shade700],
+                            colors: [Colors.blue.shade300,Colors.purple.shade600, ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -723,206 +765,150 @@ class _homePage extends State<HomePage>{
                       ),
                     ),
                     InkWell(
-
                       onTap: () async {
-                          try{
-                          showDialog(
+                        showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
-                          backgroundColor: Color(0xFFD5DEEF),
-                          title: Text(
-                          'Enter group Informations',
-                          style: TextStyle(color: Color(0xFF18185C)),
-                          ),
-                          content: SingleChildScrollView(
-                          // Pour éviter le débordement
-                          child: Form(
-                          key: _formKey,
-                          child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                          DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                          labelText: 'Speciality',
-                          border: OutlineInputBorder(),
-                          ),
-                          items: ['Engineer', 'Licence', 'Master']
-                              .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                          ))
-                              .toList(),
-                          onChanged: (value) {
-                          speciality = value;
-                          },
-                          validator: (value) {
-                          if (value == null || value.isEmpty) {
-                          return "You must fill speciality";
-                          }
-                          return null;
-                          },
-                          ),
-                          SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                          labelText: 'Level',
-                          border: OutlineInputBorder(),
-                          ),
-                          items: ['1', '2', '3']
-                              .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                          ))
-                              .toList(),
-                          onChanged: (value) {
-                          level = value;
-                          },
-                          validator: (value) {
-                          if (value == null || value.isEmpty) {
-                          return "You must fill level";
-                          }
-                          return null;
-                          },
-                          ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                          controller: numberController,
-                          decoration: InputDecoration(
-                          labelText: 'Number*',
-                          border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value){
-                          String number=value; },
-                          validator: (value) {
-                          if (value == null || value.isEmpty) {
-                          return "You must fill number";
-                          }
-                          return null;
-                          },
-                          ),
-                          SizedBox(height: 8),
-                          ElevatedButton.icon(
-                          onPressed: () async {
+                          builder: (context) {
+                            return FutureBuilder<List<Map<String, dynamic>>>(
+                              future: Dtabase().getGroup(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                }
 
-                            final result = await FilePicker.platform.pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['csv', 'pdf', 'xlsx'],
+                                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  return AlertDialog(
+                                    title: Text("Aucun groupe trouvé"),
+                                    content: Text("Veuillez d'abord créer un groupe."),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text("Fermer"),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                final groups = snapshot.data!;
+                                int? selectedGroupId;
+
+                                return AlertDialog(
+                                  backgroundColor: Color(0xFFD5DEEF),
+                                  title: Text("Choisir un groupe", style: TextStyle(color: Color(0xFF18185C))),
+                                  content: StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            DropdownButtonFormField<int>(
+                                              isExpanded: true,
+                                              decoration: InputDecoration(
+                                                labelText: 'Liste des groupes*',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              items: groups.map((group) {
+                                                return DropdownMenuItem<int>(
+                                                  value: group['gid'],
+                                                  child: Text("Groupe ${group['number']} - ${group['speciality']} - Niveau:${group['level']} - ${group['type']}"),
+                                                );
+                                              }).toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  selectedGroupId = value;
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (value == null) {
+                                                  return "Veuillez sélectionner un groupe";
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                            SizedBox(height: 20),
+                                            ElevatedButton.icon(
+                                              onPressed: selectedGroupId == null
+                                                  ? null // désactive si aucun groupe choisi
+                                                  : () async {
+                                                final result = await FilePicker.platform.pickFiles(
+                                                  type: FileType.custom,
+                                                  allowedExtensions: ['csv', 'pdf', 'xlsx'],
+                                                );
+
+                                                if (result != null && result.files.isNotEmpty) {
+                                                  String? filePath = result.files.single.path;
+                                                  if (filePath != null) {
+                                                    var bytes = File(filePath).readAsBytesSync();
+                                                    var excel = Excel.decodeBytes(bytes);
+
+                                                    int importedCount = 0;
+
+                                                    for (var table in excel.tables.keys) {
+                                                      List<Data?> headers = excel.tables[table]!.rows.first;
+
+                                                      for (int i = 1; i < excel.tables[table]!.rows.length; i++) {
+                                                        var row = excel.tables[table]!.rows[i];
+
+                                                        String numStr = row[0]?.value.toString() ?? '';
+                                                        String firstName = row[1]?.value.toString() ?? '';
+                                                        String familyName = row[2]?.value.toString() ?? '';
+
+                                                        if (numStr.isNotEmpty && firstName.isNotEmpty && familyName.isNotEmpty) {
+                                                          int? studentNumber = int.tryParse(numStr);
+
+                                                          if (studentNumber != null) {
+                                                            final db = Dtabase();
+                                                            bool success = await db.insertStudent(
+                                                              studentNumber,
+                                                              firstName,
+                                                              familyName,
+                                                              selectedGroupId!, // utiliser ici la valeur sélectionnée
+                                                            );
+                                                            if (success) importedCount++;
+                                                          } else {
+                                                            print("Numéro étudiant invalide à la ligne ${i + 1}");
+                                                          }
+                                                        } else {
+                                                          print("Données manquantes à la ligne ${i + 1}");
+                                                        }
+                                                      }
+                                                    }
+
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text('$importedCount étudiants importés avec succès.')),
+                                                    );
+                                                  }
+                                                } else {
+                                                  print("Aucun fichier sélectionné.");
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('Aucun fichier sélectionné.')),
+                                                  );
+                                                }
+                                              },
+                                              icon: Icon(Icons.upload_file),
+                                              label: Text("Upload list student"),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Color(0xFFB1C9EF),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                );
+                              },
                             );
-
-                            if (result != null && result.files.isNotEmpty) {
-                            String? filePath = result.files.single.path;
-                            if (filePath != null) {
-                            var bytes = File(filePath).readAsBytesSync();
-                            var excel = Excel.decodeBytes(bytes);
-
-                            List<Map<String, String>> students = [];
-
-                            for (var table in excel.tables.keys) {
-                            List<Data?> headers = excel.tables[table]!.rows.first;
-
-                            for (int i = 1; i < excel.tables[table]!.rows.length; i++) {
-                            var row = excel.tables[table]!.rows[i];
-
-
-                            String num= row[0]?.value.toString() ?? '';
-                            String nom= row[1]?.value.toString() ?? '';
-                            String prenom= row[2]?.value.toString() ?? '';
-                            final db=Dtabase();
-
-                            }
-                            }
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${students.length} étudiants importés avec succès.')),
-                            );
-                            print(students);
-                            }
-                            } else {
-                            print("Aucun fichier sélectionné.");
-                            ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Aucun fichier sélectionné.')),
-                            );
-                            }
-
-
-                            }
-
-                            ,icon: Icon(Icons.upload_file),
-                          label: Text("Upload list student"),
-                          style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFB1C9EF),
-                          ),
-                          ),
-                          SizedBox(height: 8),
-                          SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                          labelText: 'Level',
-                          border: OutlineInputBorder(),
-                          ),
-                          items: ['tp', 'td']
-                              .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                          ))
-                              .toList(),
-                          onChanged: (value) {
-                          level = value;
                           },
-                          validator: (value) {
-                          if (value == null || value.isEmpty) {
-                          return "You must fill level";
-                          }
-                          return null;
-                          },
-                          ),
-                          ],
-                          ),
-                          ),
-                          ),
-                          actions: [
-                          TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Annuler', style: TextStyle(color: Color(0xFF18185C))),
-                          ),
-                          ElevatedButton(
-                          onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                          final dbc = Dtabase();
-                          bool success = await dbc.insertGroup(
-                          speciality!,
-                          int.parse(level!),
-                          int.parse(numberController.text !),'td');
-                          if (success) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                          content: Text('The group was created successfully!')),
-                          );
-                          } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: Failed to create class.')),
-                          );
-                          }
-                          }
-                          },
-                          child: Text('Valider', style: TextStyle(color: Color(0xFF18185C))),
-                          style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFB1C9EF),
-                          ),
-                          ),
-                          ],
-                          ),
-                          );
-                          }catch(e) {print("sd");}
+                        );
                       },
                       child: Container(
                         padding: EdgeInsets.all(16.0),
                         margin: EdgeInsets.symmetric(vertical: 10.0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade300, Colors.green.shade700],
+                            colors: [Colors.purple.shade700, Colors.pink.shade200],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -941,17 +927,20 @@ class _homePage extends State<HomePage>{
                             Icon(FontAwesomeIcons.peopleGroup, size: 40.0, color: Colors.white),
                             SizedBox(height: 10.0),
                             Text(
-                              "Add student from file",
+                              "Choisir un groupe",
                               style: TextStyle(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
-                            ),
+                            )
                           ],
                         ),
                       ),
-                    ),
+                    )
+
+
+
                   ],
                 ),
               ],
@@ -1186,6 +1175,15 @@ class _classInfo extends State<classInfo> {
         elevation: 6,
         backgroundColor: Color(0xFF303F9F),
         titleSpacing: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Icon(Icons.assignment, color: Colors.white, size: 28),
@@ -1321,11 +1319,12 @@ class _classInfo extends State<classInfo> {
 class groupInfo extends StatefulWidget{
   _groupInfo createState() =>  _groupInfo();
 }
-class _groupInfo extends State<groupInfo> {
+class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
   TextEditingController searchController = TextEditingController();
   final dbc = Dtabase();
   List<Map<String, dynamic>> Lclass = [];
   List<Map<String, dynamic>> filteredClasses = [];
+  TabController? _tabController;
 
   @override
   void initState() {
@@ -1334,14 +1333,18 @@ class _groupInfo extends State<groupInfo> {
     searchController.addListener(_searchClasses);
   }
 
-  Future<void> loadClasses() async {
+  Future<void> loadClasses({String? type}) async {
     final groups = await dbc.getGroup();
     setState(() {
-      Lclass = groups;
-      filteredClasses = groups;
+      if (type != null) {
+        filteredClasses = groups.where((classe) => classe['type'] == type).toList();
+        Lclass=groups.where((classe) => classe['type'] == type).toList();
+      } else {
+        filteredClasses = groups;
+        Lclass=groups;
+      }
     });
   }
-
   void _searchClasses() {
     String query = searchController.text.toLowerCase();
     setState(() {
@@ -1351,7 +1354,6 @@ class _groupInfo extends State<groupInfo> {
       }).toList();
     });
   }
-
   void _applyFilter(String filter) {
     setState(() {
       if (filter == 'Speciality') {
@@ -1360,35 +1362,6 @@ class _groupInfo extends State<groupInfo> {
         filteredClasses.sort((a, b) => a['level'].compareTo(b['level']));
       }
     });
-  }
-
-
-  void _confirmDelete(int id) {
-    showDialog(
-      context: context as BuildContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Color(0xFF2E2E6E),
-          title: Text('Confirm Deletion', style: TextStyle(color: Colors.white)),
-          content: Text('Are you sure you want to delete this group?',
-              style: TextStyle(color: Colors.white)),
-          actions: [
-            TextButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              child: Text('Delete'),
-              onPressed: () async {
-                await dbc.deleteGroup(id);
-                Navigator.pop(context);
-                await loadClasses();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
   int ?i;
   void _showGroupOptionsDialog(BuildContext context, int groupId) {
@@ -1431,13 +1404,13 @@ class _groupInfo extends State<groupInfo> {
       ),
     );
   }
-  Future<void> _confirmDelete2(context ,int groupId) async {
+  Future<void> _confirmDelete2(context, int groupId) async {
     bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF2E2E6E),
         title: Text("Confirm Deletion", style: TextStyle(color: Colors.white)),
-        content: Text("Do you really want to delete this group?", style: TextStyle(color: Colors.white70)),
+        content: Text("Do you want to delete this group, its students, and its class associations?", style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1453,18 +1426,33 @@ class _groupInfo extends State<groupInfo> {
 
     if (confirm == true) {
       final db = Dtabase();
-      await db.deleteGroup(groupId);
-      await loadClasses(); // Recharge la liste après suppression
+
+      await db.deleteStudentsByGroupId(groupId);            // Supprime les étudiants du groupe
+      await db.deleteGroupClassAssociations(groupId);       // Supprime les associations avec les classes
+      await db.deleteGroup(groupId);                        // Supprime le groupe
+
+      await loadClasses(); // Recharge les groupes à l'écran
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Group deleted")),
+        SnackBar(content: Text("Group, students, and associations deleted")),
       );
     }
   }
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 6,
         backgroundColor: Color(0xFF303F9F),
         titleSpacing: 0,
@@ -1507,6 +1495,7 @@ class _groupInfo extends State<groupInfo> {
                           prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(12),
+
                         ),
                       ),
                     ),
@@ -1651,6 +1640,52 @@ class _groupInfo extends State<groupInfo> {
           },
         ),
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.purple.shade900,
+              Colors.purple.shade300,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent, // Transparent pour voir le gradient
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey[300],
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+              if (index == 0) {
+                loadClasses();
+              } else if (index == 1) {
+                loadClasses(type: 'td');
+              } else if (index == 2) {
+                loadClasses(type: 'tp');
+              }
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list),
+              label: 'All',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.class_),
+              label: 'TD',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.computer),
+              label: 'TP',
+            ),
+          ],
+        ),
+      ),
+
+
     );
   }
 }
@@ -1718,6 +1753,15 @@ class _ClassesListScreenState extends State<ClassesListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: Text("Classes Associées"),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>( // FutureBuilder qui attend les classes associées
@@ -1811,8 +1855,9 @@ class _StudentList extends State<student> {
     String query = searchController.text.toLowerCase();
     setState(() {
       filteredStudents = students.where((student) {
-        return student['speciality'].toLowerCase().contains(query) ||
-            student['level'].toString().contains(query);
+        return  student['number'].toString().contains(query)||
+            student['finame'].toLowerCase().contains(query) ||
+            student['famname'].toLowerCase().contains(query);
       }).toList();
     });
   }
@@ -1820,15 +1865,13 @@ class _StudentList extends State<student> {
   // Fonction de filtre pour trier par spécialité ou niveau
   void _applyFilter(String filter) {
     setState(() {
-      if (filter == 'Speciality') {
-        filteredStudents.sort((a, b) => a['speciality'].compareTo(b['speciality']));
-      } else if (filter == 'level') {
-        filteredStudents.sort((a, b) => a['level'].compareTo(b['level']));
+      if (filter == 'number') {
+        filteredStudents.sort((a, b) => a['number'].compareTo(b['number']));
       }
+
     });
   }
 
-  // Fonction pour afficher la boîte de dialogue de confirmation pour la suppression
   Future<void> _showDeleteConfirmationDialog(BuildContext context, int studentId) async {
     showDialog(
       context: context,
@@ -1861,6 +1904,49 @@ class _StudentList extends State<student> {
       },
     );
   }
+  void _showEditStudentDialog(BuildContext context,Map<String, dynamic> student) {
+    TextEditingController nameController = TextEditingController(text: student['finame']);
+    TextEditingController surnameController = TextEditingController(text: student['famname']);
+    TextEditingController numberController = TextEditingController(text: student['number'].toString());
+
+    showDialog(
+      context:context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Modifier l'étudiant"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameController, decoration: InputDecoration(labelText: 'Prénom')),
+              TextField(controller: surnameController, decoration: InputDecoration(labelText: 'Nom de famille')),
+              TextField(controller: numberController, decoration: InputDecoration(labelText: 'Numéro')),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Annuler"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final db = Dtabase();
+                await db.updateStudent(
+                  student['sid'],
+                  nameController.text,
+                  surnameController.text,
+                  int.parse(numberController.text!),
+                );
+                await loadStudents(); // Recharger les étudiants
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Étudiant modifié avec succès")));
+              },
+              child: Text("Modifier"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -1873,6 +1959,15 @@ class _StudentList extends State<student> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 4,
         backgroundColor: Color(0xFF18185C),
         titleSpacing: 0,
@@ -1885,7 +1980,7 @@ class _StudentList extends State<student> {
           ),
         ),
         title: Text(
-          "MY GROUPS",
+          "MY GROUP",
           style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -1910,7 +2005,7 @@ class _StudentList extends State<student> {
                         keyboardType: TextInputType.text,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Search by level or speciality...',
+                          hintText: 'Search by number , name  ...',
                           hintStyle: TextStyle(color: Color(0xFFB1C9EF)),
                           prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
                           border: InputBorder.none,
@@ -1922,20 +2017,17 @@ class _StudentList extends State<student> {
                 },
               );
             },
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.search ,  color: Color(0xFFB1C9EF)),
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list, color: Color(0xFFB1C9EF)),
             onSelected: _applyFilter,
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
-                value: 'Speciality',
-                child: Text('Filter by Speciality'),
+                value: 'number',
+                child: Text('Filter by number'),
               ),
-              PopupMenuItem(
-                value: 'level',
-                child: Text('Filter by Level'),
-              ),
+
             ],
           ),
         ],
@@ -1946,24 +2038,21 @@ class _StudentList extends State<student> {
           final student = filteredStudents[index];
           return ListTile(
             leading: Icon(Icons.person),
-            title: Text('${student['finame']} ${student['famname']}'),
-            subtitle: Text('Speciality: ${student['speciality']} | Level: ${student['level']}'),
+            title: Text('${student['number']} | ${student['finame']} ${student['famname']}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: Icon(Icons.edit, color: Colors.blue),
                   onPressed: () {
-                    final db = Dtabase();
-                    db.updateStudent(3, 'Ahmed Ben Ali', 'ahmed@example.com', 1);
-                    // Ajoute ici ton code pour éditer un étudiant
+                    _showEditStudentDialog(context,student);
                   },
                 ),
                 IconButton(
                   icon: Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
                     // Affiche la boîte de dialogue de confirmation avant de supprimer
-                    _showDeleteConfirmationDialog(context, student['id']); // Assurez-vous que l'ID de l'étudiant est accessible
+                    _showDeleteConfirmationDialog(context, student['sid']); // Assurez-vous que l'ID de l'étudiant est accessible
                   },
                 ),
               ],
@@ -1993,7 +2082,7 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'ab.db');
+    String path = join(databasesPath, 'ab2.db');
     return await openDatabase(
       path,
       version: 4,
@@ -2023,10 +2112,9 @@ class Dtabase {
         await db.execute('''
           CREATE TABLE student (
             sid INTEGER PRIMARY KEY AUTOINCREMENT,
+            number int ,
             finame TEXT NOT NULL,
             famname TEXT NOT NULL,
-            speciality TEXT NOT NULL,
-            level INTEGER NOT NULL,
             group_id INTEGER NOT NULL,
             FOREIGN KEY(group_id) REFERENCES "group"(gid)
           )
@@ -2094,8 +2182,8 @@ class Dtabase {
       final db = await database;
       List<Map<String, dynamic>> existingGroups = await db.query(
         'group',
-        where: 'speciality = ? AND level = ? AND number = ?',
-        whereArgs: [speciality, level, number],
+        where: 'speciality = ? AND level = ? AND number = ? AND type = ?',
+        whereArgs: [speciality, level, number ,type],
       );
 
       if (existingGroups.isNotEmpty) {
@@ -2133,7 +2221,6 @@ class Dtabase {
   Future<void> deleteGroup(int id) async {
     final db = await database;
     await db.delete('group', where: 'gid = ?', whereArgs: [id]);
-    await db.delete('class_group', where: 'group_id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getGroup() async {
@@ -2142,45 +2229,56 @@ class Dtabase {
   }
 
   // --- Students ---
-  Future<bool> insertStudent(String finame, String famname, String speciality, int level, int group) async {
+  Future<bool> insertStudent(
+      int studentNumber,
+      String firstName,
+      String familyName,
+      int groupId,
+      ) async {
+    final db = await database;
+
     try {
-      final db = await database;
-      await db.insert('student', {
-        'finame': finame,
-        'famname': famname,
-        'speciality': speciality,
-        'level': level,
-        'group_id': group,
-      });
+      await db.insert(
+        'student',
+        {
+          'number': studentNumber,
+          'finame': firstName,
+          'famname': familyName,
+          'group_id': groupId,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace, // ou ignore selon ton besoin
+      );
       return true;
     } catch (e) {
-      print('Erreur lors de l\'insertion de l\'étudiant : $e');
+      print("Erreur lors de l'insertion de l'étudiant : $e");
       return false;
     }
   }
 
-  Future<void> updateStudent(int id, String name, String email, int groupId) async {
+  Future<void> updateStudent(int id, String finame, String famname, int number) async {
     final db = await database;
+
     await db.update(
-      'students',
+      'student',
       {
-        'name': name,
-        'email': email,
-        'group_id': groupId,
+        'finame': finame,
+        'famname': famname,
+        'number': number,
       },
-      where: 'id = ?',
+      where: 'sid = ?',
       whereArgs: [id],
     );
   }
 
   Future<void> deleteStudent(int studentId) async {
     final db = await database;
-    try {
-      await db.delete('students', where: 'id = ?', whereArgs: [studentId]);
-    } catch (e) {
-      print("Erreur lors de la suppression de l'étudiant: $e");
-    }
+    await db.delete(
+      'student',
+      where: 'sid = ?',
+      whereArgs: [studentId],
+    );
   }
+
 
   Future<List<Map<String, dynamic>>> getStudentsByGroup(int groupId) async {
     final db = await database;
@@ -2236,5 +2334,16 @@ class Dtabase {
     final db = await database;
     await db.delete('class_group', where: 'group_id = ?', whereArgs: [groupId]);
   }
+
+  Future<void> deleteStudentsByGroupId(int groupId) async {
+    final db = await database;
+    await db.delete('student', where: 'group_id = ?', whereArgs: [groupId]);
+  }
+
+  Future<void> deleteGroupClassAssociations(int groupId) async {
+    final db = await database;
+    await db.delete('class_group', where: 'group_id = ?', whereArgs: [groupId]);
+  }
+
 }
 
