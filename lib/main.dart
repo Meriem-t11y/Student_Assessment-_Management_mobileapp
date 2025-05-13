@@ -6,13 +6,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:excel/excel.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
+
 
 
 void main() {
   runApp(
       MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute:'/1h' ,
+        initialRoute:'/' ,
         routes: {
           '/1h': (context) => firstPage(),
           '/': (context) =>HomePage(),
@@ -794,7 +797,7 @@ class _homePage extends State<HomePage>{
 
                                 return AlertDialog(
                                   backgroundColor: Color(0xFFD5DEEF),
-                                  title: Text("Choisir un groupe", style: TextStyle(color: Color(0xFF18185C))),
+                                  title: Text(" Enter student from file excel", style: TextStyle(color: Color(0xFF18185C))),
                                   content: StatefulBuilder(
                                     builder: (context, setState) {
                                       return SingleChildScrollView(
@@ -927,7 +930,7 @@ class _homePage extends State<HomePage>{
                             Icon(FontAwesomeIcons.peopleGroup, size: 40.0, color: Colors.white),
                             SizedBox(height: 10.0),
                             Text(
-                              "Choisir un groupe",
+                              "enter group From file excel",
                               style: TextStyle(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.bold,
@@ -1314,8 +1317,150 @@ class _classInfo extends State<classInfo> {
     );
   }
 }
+class SessionDetailsScreen extends StatefulWidget {
+  final String date;
+  final String time;
+
+  const SessionDetailsScreen({Key? key, required this.date, required this.time})
+      : super(key: key);
+
+  @override
+  _SessionDetailsScreenState createState() => _SessionDetailsScreenState();
+}
+
+class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Session Details'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text('Date: ${widget.date}'),
+            SizedBox(height: 8),
+            Text('Time: ${widget.time}'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SessionFormScreen extends StatefulWidget {
+  final int groupId;
+
+  const SessionFormScreen({Key? key, required this.groupId}) : super(key: key);
+
+  @override
+  _SessionFormScreenState createState() => _SessionFormScreenState();
+}
 
 
+
+class _SessionFormScreenState extends State<SessionFormScreen> {
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  String formatTime(TimeOfDay time) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat('HH:mm').format(dt);
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) setState(() => selectedDate = picked);
+  }
+
+  Future<void> _pickTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) setState(() => selectedTime = picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Ajouter une session'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ElevatedButton(
+              onPressed: () => _pickDate(context),
+              child: Text('Choisir une date'),
+            ),
+            SizedBox(height: 10),
+            Text(
+              selectedDate == null
+                  ? 'Aucune date sélectionnée'
+                  : 'Date: ${selectedDate!.toLocal()}'.split(' ')[0],
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _pickTime(context),
+              child: Text('Choisir une heure'),
+            ),
+            SizedBox(height: 10),
+            Text(
+              selectedTime == null
+                  ? 'Aucune heure sélectionnée'
+                  : 'Heure: ${selectedTime!.format(context)}',
+            ),
+            SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () async {
+                if (selectedDate != null && selectedTime != null) {
+
+                  await Dtabase().insertSession(widget.groupId, selectedDate!, selectedTime!);
+                  print('Session inserted successfully');
+
+
+                  final formattedDate = formatDate(selectedDate!);
+                  final formattedTime = formatTime(selectedTime!);
+
+                  // Navigate to a new screen or update the UI to display the date and time
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SessionDetailsScreen(
+                        date: formattedDate,
+                        time: formattedTime,
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Veuillez choisir une date et une heure')),
+                  );
+                }
+              },
+              child: Text('Enregistrer la session'),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+}
 class groupInfo extends StatefulWidget{
   _groupInfo createState() =>  _groupInfo();
 }
@@ -1332,7 +1477,6 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
     loadClasses();
     searchController.addListener(_searchClasses);
   }
-
   Future<void> loadClasses({String? type}) async {
     final groups = await dbc.getGroup();
     setState(() {
@@ -1369,36 +1513,47 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
       context: context,
       builder: (_) => AlertDialog(
         title: Text("Choisissez une option"),
-        content: Text("Voulez-vous voir la liste des étudiants ou les classes associées ?"),
+        content: Text("Que voulez-vous faire ?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),  // Ferme le dialogue
+            onPressed: () => Navigator.pop(context), // Ferme le dialogue
             child: Text("Annuler"),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
+                context,
+                MaterialPageRoute(
                   builder: (context) => student(groupId: filteredClasses[i!]),
-              ),
+                ),
               );
-
             },
             child: Text("Voir la liste des étudiants"),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);  // Ferme le dialogue
+              Navigator.pop(context); // Ferme le dialogue
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ClassesListScreen(groupId: groupId),  // Ecran des classes associées
+                  builder: (context) => ClassesListScreen(groupId: groupId), // Écran des classes associées
                 ),
               );
             },
             child: Text("Voir les classes"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Ferme le dialogue
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClassesListScreen(groupId: groupId), // À toi de créer ce screen si nécessaire
+                ),
+              );
+            },
+            child: Text("Voir toutes les sessions"),
           ),
         ],
       ),
@@ -1561,6 +1716,11 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
+                          IconButton(icon: Icon(Icons.add_circle_outline),
+                              onPressed: () {
+
+                                 }
+                          ),
                           IconButton(
                             icon: Icon(Icons.edit, color: Colors.white),
                               onPressed: () {
@@ -2082,7 +2242,7 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'ab2.db');
+    String path = join(databasesPath, 'ab7.db');
     return await openDatabase(
       path,
       version: 4,
@@ -2105,7 +2265,7 @@ class Dtabase {
             speciality TEXT NOT NULL,
             level INTEGER NOT NULL,
             type TEXT NOT NULL,
-            UNIQUE(number, speciality, level)
+            UNIQUE(number, speciality, level,type)
           )
         ''');
 
@@ -2117,9 +2277,18 @@ class Dtabase {
             famname TEXT NOT NULL,
             group_id INTEGER NOT NULL,
             FOREIGN KEY(group_id) REFERENCES "group"(gid)
+             UNIQUE(number)
           )
         ''');
-
+        await db.execute('''
+        CREATE TABLE sessions(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        groupId INTEGER,
+        date TEXT,
+        time TEXT,
+        FOREIGN KEY(group_id) REFERENCES "group"(gid)
+      )
+    ''');
         await db.execute('''
           CREATE TABLE class_group (
             class_id INTEGER,
@@ -2146,6 +2315,31 @@ class Dtabase {
       return true;
     } catch (e) {
       print('Erreur lors de l\'insertion de la classe : $e');
+      return false;
+    }
+  }
+  Future<bool> updateSession(int sessionId, DateTime newDate, TimeOfDay newTime) async {
+    try {
+      final db = await database;
+
+      final String formattedDate =
+          "${newDate.year.toString().padLeft(4, '0')}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}";
+      final String formattedTime =
+          "${newTime.hour.toString().padLeft(2, '0')}:${newTime.minute.toString().padLeft(2, '0')}";
+
+      int count = await db.update(
+        'sessions',
+        {
+          'date': formattedDate,
+          'time': formattedTime,
+        },
+        where: 'id = ?',
+        whereArgs: [sessionId],
+      );
+
+      return count > 0;
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la session : $e');
       return false;
     }
   }
@@ -2180,23 +2374,33 @@ class Dtabase {
   Future<bool> insertGroup(String speciality, int level, int number, String type) async {
     try {
       final db = await database;
+
+      // Vérifie s'il existe déjà un groupe avec la même spécialité, niveau et numéro, quel que soit le type
       List<Map<String, dynamic>> existingGroups = await db.query(
         'group',
-        where: 'speciality = ? AND level = ? AND number = ? AND type = ?',
-        whereArgs: [speciality, level, number ,type],
+        where: 'speciality = ? AND level = ? AND number = ?',
+        whereArgs: [speciality, level, number],
       );
 
+      // Si un groupe existe avec la même spécialité, niveau et numéro
       if (existingGroups.isNotEmpty) {
-        print('Ce groupe existe déjà.');
-        return false;
+        // Vérifie si ce groupe a déjà le même type
+        for (var group in existingGroups) {
+          if (group['type'] == type) {
+            print('Ce groupe avec ce type existe déjà.');
+            return false; // Empêche l'insertion si le type est déjà pris
+          }
+        }
       }
 
+      // Si aucun groupe avec le même type n'existe, insère le nouveau groupe
       await db.insert('group', {
         'number': number,
         'speciality': speciality,
         'level': level,
         'type': type,
       });
+
       return true;
     } catch (e) {
       print('Erreur lors de l\'insertion du groupe : $e');
@@ -2246,14 +2450,16 @@ class Dtabase {
           'famname': familyName,
           'group_id': groupId,
         },
-        conflictAlgorithm: ConflictAlgorithm.replace, // ou ignore selon ton besoin
+        conflictAlgorithm: ConflictAlgorithm.abort,
       );
       return true;
     } catch (e) {
-      print("Erreur lors de l'insertion de l'étudiant : $e");
+      print("Erreur : Numéro d'étudiant déjà utilisé → $e");
       return false;
     }
   }
+
+
 
   Future<void> updateStudent(int id, String finame, String famname, int number) async {
     final db = await database;
@@ -2343,6 +2549,31 @@ class Dtabase {
   Future<void> deleteGroupClassAssociations(int groupId) async {
     final db = await database;
     await db.delete('class_group', where: 'group_id = ?', whereArgs: [groupId]);
+  }
+  //new
+  Future<bool> insertSession(int groupId, DateTime date, TimeOfDay time) async {
+    try {
+      final db = await database; // Use the singleton database instance.
+
+      final String formattedDate =
+          "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+      final String formattedTime =
+          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+
+      await db.insert(
+        'sessions',
+        {
+          'groupId': groupId,
+          'date': formattedDate,
+          'time': formattedTime,
+        },
+        // conflictAlgorithm: ConflictAlgorithm.replace, ← نحذفها
+      );
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'insertion de session : $e');
+      return false;
+    }
   }
 
 }
