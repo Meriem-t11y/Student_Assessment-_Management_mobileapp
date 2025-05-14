@@ -8,6 +8,10 @@ import 'package:sqflite/sqflite.dart';
 import 'package:excel/excel.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:excel/excel.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 
 
@@ -1349,118 +1353,10 @@ class _SessionDetailsScreenState extends State<SessionDetailsScreen> {
   }
 }
 
-class SessionFormScreen extends StatefulWidget {
-  final int groupId;
-
-  const SessionFormScreen({Key? key, required this.groupId}) : super(key: key);
-
-  @override
-  _SessionFormScreenState createState() => _SessionFormScreenState();
-}
 
 
 
-class _SessionFormScreenState extends State<SessionFormScreen> {
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
 
-  String formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
-  String formatTime(TimeOfDay time) {
-    final now = DateTime.now();
-    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    return DateFormat('HH:mm').format(dt);
-  }
-
-  Future<void> _pickDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) setState(() => selectedDate = picked);
-  }
-
-  Future<void> _pickTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) setState(() => selectedTime = picked);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Ajouter une session'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ElevatedButton(
-              onPressed: () => _pickDate(context),
-              child: Text('Choisir une date'),
-            ),
-            SizedBox(height: 10),
-            Text(
-              selectedDate == null
-                  ? 'Aucune date sélectionnée'
-                  : 'Date: ${selectedDate!.toLocal()}'.split(' ')[0],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _pickTime(context),
-              child: Text('Choisir une heure'),
-            ),
-            SizedBox(height: 10),
-            Text(
-              selectedTime == null
-                  ? 'Aucune heure sélectionnée'
-                  : 'Heure: ${selectedTime!.format(context)}',
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () async {
-                if (selectedDate != null && selectedTime != null) {
-
-                  await Dtabase().insertSession(widget.groupId, selectedDate!, selectedTime!);
-                  print('Session inserted successfully');
-
-
-                  final formattedDate = formatDate(selectedDate!);
-                  final formattedTime = formatTime(selectedTime!);
-
-                  // Navigate to a new screen or update the UI to display the date and time
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SessionDetailsScreen(
-                        date: formattedDate,
-                        time: formattedTime,
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Veuillez choisir une date et une heure')),
-                  );
-                }
-              },
-              child: Text('Enregistrer la session'),
-            ),
-
-          ],
-        ),
-      ),
-    );
-  }
-}
 class groupInfo extends StatefulWidget{
   _groupInfo createState() =>  _groupInfo();
 }
@@ -1512,14 +1408,12 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Choisissez une option"),
-        content: Text("Que voulez-vous faire ?"),
+        backgroundColor: Color(0xFF2E2E6E),
+        title: Text("Choose option", style: TextStyle(color: Colors.white)),
+        content: Text("What do you want to do?", style: TextStyle(color: Colors.white)),
         actions: [
+
           TextButton(
-            onPressed: () => Navigator.pop(context), // Ferme le dialogue
-            child: Text("Annuler"),
-          ),
-          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.push(
@@ -1529,9 +1423,9 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
                 ),
               );
             },
-            child: Text("Voir la liste des étudiants"),
+            child: Text("see all students", style: TextStyle(color:Colors.purple.shade300)),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () {
               Navigator.pop(context); // Ferme le dialogue
               Navigator.push(
@@ -1541,19 +1435,23 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
                 ),
               );
             },
-            child: Text("Voir les classes"),
+            child: Text("See all classes", style: TextStyle(color:Colors.purple.shade300)),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () {
               Navigator.pop(context); // Ferme le dialogue
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ClassesListScreen(groupId: groupId), // À toi de créer ce screen si nécessaire
+                  builder: (context) =>SeeListSessions(groupId: groupId), // À toi de créer ce screen si nécessaire
                 ),
               );
             },
-            child: Text("Voir toutes les sessions"),
+            child: Text("see all sessions", style: TextStyle(color:Colors.purple.shade300)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Ferme le dialogue
+            child: Text("Annuler"),
           ),
         ],
       ),
@@ -1650,7 +1548,6 @@ class _groupInfo extends State<groupInfo>with SingleTickerProviderStateMixin  {
                           prefixIcon: Icon(Icons.search, color: Color(0xFFB1C9EF)),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(12),
-
                         ),
                       ),
                     ),
@@ -1857,6 +1754,568 @@ class ClassesListScreen extends StatefulWidget {
   @override
   _ClassesListScreenState createState() => _ClassesListScreenState();
 }
+
+class SeeListSessions extends StatefulWidget {
+  final int groupId;
+
+  const SeeListSessions({super.key, required this.groupId});
+
+  @override
+  State<SeeListSessions> createState() => _SeeListSessionsState();
+}class _SeeListSessionsState extends State<SeeListSessions> {
+  List<Map<String, dynamic>> _sessions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    final db = Dtabase();
+    final sessions = await db.getSessionsByGroup(widget.groupId);
+    setState(() {
+      _sessions = sessions;
+    });
+  }
+
+  void _showAddSessionDialog(BuildContext context) {
+    final _dateController = TextEditingController();
+    final _timeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Nouvelle Session"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _dateController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Date (yyyy-MM-dd)',
+                  icon: Icon(Icons.calendar_today),
+                ),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    _dateController.text =
+                        DateFormat('yyyy-MM-dd').format(pickedDate);
+                  }
+                },
+              ),
+              TextField(
+                controller: _timeController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Heure (HH:mm)',
+                  icon: Icon(Icons.access_time),
+                ),
+                onTap: () async {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    _timeController.text = pickedTime.format(context);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final date = _dateController.text;
+                final time = _timeController.text;
+                if (date.isNotEmpty && time.isNotEmpty) {
+                  final db = Dtabase();
+                  await db.insertSession(widget.groupId, date, time);
+                  Navigator.pop(context);
+                  _loadSessions();
+                }
+              },
+              child: const Text('Ajouter'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditSessionDialog(BuildContext context, Map<String, dynamic> session) {
+    final _dateController = TextEditingController(text: session['date']);
+    final _timeController = TextEditingController(text: session['time']);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Modifier la Session"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _dateController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Date (yyyy-MM-dd)',
+                  icon: Icon(Icons.calendar_today),
+                ),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.tryParse(session['date']) ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+                  }
+                },
+              ),
+              TextField(
+                controller: _timeController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Heure (HH:mm)',
+                  icon: Icon(Icons.access_time),
+                ),
+                onTap: () async {
+                  final initialTime = TimeOfDay.fromDateTime(
+                    DateFormat('HH:mm').parse(session['time']),
+                  );
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: initialTime,
+                  );
+                  if (pickedTime != null) {
+                    _timeController.text = pickedTime.format(context);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final date = _dateController.text;
+                final time = _timeController.text;
+                if (date.isNotEmpty && time.isNotEmpty) {
+                  final db = Dtabase();
+                  await db.updateSession(session['id'], date, time);
+                  Navigator.pop(context);
+                  _loadSessions();
+                }
+              },
+              child: const Text('Enregistrer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteSession(BuildContext context, int sessionId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Supprimer la session"),
+        content: const Text("Êtes-vous sûr de vouloir supprimer cette session ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Annuler"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final db = Dtabase();
+              await db.deleteSession(sessionId);
+              Navigator.pop(context);
+              _loadSessions();
+            },
+            child: const Text("Supprimer"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _exportToExcel(BuildContext context) async {
+    // Vérifier ou demander la permission d’écriture (Android 13+)
+    if (Platform.isAndroid) {
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Permission refusée")),
+        );
+        return;
+      }
+    }
+
+    // Créer une nouvelle instance Excel
+    final Excel excel = Excel.createExcel();
+
+    // Ajouter une feuille (ou récupérer la feuille par défaut)
+    final Sheet sheet = excel['Sessions'];
+
+    // En-têtes
+    sheet.updateCell(CellIndex.indexByString("A1"), TextCellValue("ID"));
+    sheet.updateCell(CellIndex.indexByString("B1"), TextCellValue("Date"));
+    sheet.updateCell(CellIndex.indexByString("C1"), TextCellValue("Heure"));
+
+    // Ajouter les données
+    for (var session in _sessions) {
+      sheet.appendRow([
+        session['id'],
+        session['date'],
+        session['time'],
+      ]);
+    }
+
+    // Obtenir le dossier de destination
+    final directory = await getExternalStorageDirectory();
+    final path = directory!.path;
+    final file = File('$path/sessions_${DateTime.now().millisecondsSinceEpoch}.xlsx');
+
+    // Sauvegarder le fichier
+    final fileBytes = excel.encode();
+    if (fileBytes != null) {
+      await file.writeAsBytes(fileBytes, flush: true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Exporté : ${file.path}")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur lors de l'encodage du fichier Excel.")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade900, Colors.purple.shade300],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 6,
+        backgroundColor: const Color(0xFF303F9F),
+        titleSpacing: 0,
+        leading: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Icon(Icons.list_alt, color: Color(0xFFB1C9EF), size: 28),
+        ),
+        title: const Text(
+          "Session List",
+          style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: _sessions.isEmpty
+                ? const Center(child: Text('Aucune session trouvée.'))
+                : ListView.builder(
+              itemCount: _sessions.length,
+              itemBuilder: (context, index) {
+                final session = _sessions[index];
+                return ListTile(
+                  leading: const Icon(Icons.event),
+                  title: Text('Date : ${session['date']}'),
+                  subtitle: Text('Heure : ${session['time']}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => _showEditSessionDialog(context, session),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _confirmDeleteSession(context, session['id']),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.navigate_next, color: Colors.green),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SessionDetailsPage(sessionId: session['id']),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: IconButton(
+              icon: const Icon(Icons.file_download),
+              onPressed:()=> _exportToExcel(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                textStyle: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddSessionDialog(context),
+        child: const Icon(Icons.add),
+        tooltip: 'Ajouter une session',
+      ),
+    );
+  }
+}
+
+class SessionDetailsPage extends StatefulWidget {
+  final int sessionId;
+
+  SessionDetailsPage({required this.sessionId});
+
+  @override
+  _SessionDetailsPageState createState() => _SessionDetailsPageState();
+}
+class _SessionDetailsPageState extends State<SessionDetailsPage> {
+  List<Map<String, dynamic>> students = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchStudents();
+  }
+
+  Future<void> fetchStudents() async {
+    final data = await Dtabase().getStudentsBySession(widget.sessionId);
+    setState(() {
+      students = data;
+    });
+  }
+
+
+  void _markPresence(int studentId, String status) async {
+    final db = Dtabase();
+    await db.markPresence(widget.sessionId, studentId, status);
+    fetchStudents();
+  }
+
+  void _addPlus(int studentId) async {
+    final db = Dtabase();
+    await db.incrementPlus(widget.sessionId, studentId);
+    fetchStudents();
+  }
+
+  void _addComment(context ,int studentId) async {
+    final controller = TextEditingController();
+    await showDialog(
+      context: context ,
+      builder: (_) => AlertDialog(
+        backgroundColor: Color(0xFF2E2E6E),
+        title: Text("Ajouter un commentaire",style: TextStyle(color: Colors.white),),
+        content: TextField(controller: controller),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Annuler")),
+          ElevatedButton(
+            onPressed: () async {
+              final db = Dtabase();
+              await db.addComment(widget.sessionId, studentId, controller.text);
+              Navigator.pop(context);
+              fetchStudents();
+            },
+            child: Text("Ajouter"),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildStatBox(String label, int count, Color color) {
+    return Column(
+      children: [
+        Text(
+          '$count',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+        ),
+        SizedBox(height: 4),
+        Text(label, style: TextStyle(color: Colors.black54)),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int total = students.length;
+    int presents = students.where((s) => s['status'] == 'présent').length;
+    int absents = students.where((s) => s['status'] == 'absent').length;
+    int justifies = students.where((s) => s['status'] == 'justifié').length;
+    return Scaffold(
+      appBar: AppBar( flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple.shade900 ,Colors.purple.shade300 ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
+          elevation: 6,
+          backgroundColor: Color(0xFF3E4A8C),
+          titleSpacing: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.edit_note,
+              color: Color(0xFFB1C9EF),
+              size: 28,
+            ),
+          ),
+          title: Text(
+            "Sessions Details",
+            style: TextStyle(color: Color(0xFFB1C9EF), fontSize: 16, fontWeight: FontWeight.bold),
+          )),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: Card(
+              color: Colors.blue.shade50,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatBox('Présents', presents, Colors.green),
+                    _buildStatBox('Absents', absents, Colors.red),
+                    _buildStatBox('Justifiés', justifies, Colors.orange),
+                    _buildStatBox('Total', total, Colors.blueGrey),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: students.length,
+              itemBuilder: (_, index) {
+                final student = students[index];
+                final fullName = '${student['finame']} ${student['famname']}';
+                final commentaire = student['commentaire'] ?? '';
+
+                return GestureDetector(
+                  onTap: () {
+                    if (commentaire.isNotEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: Text('Commentaire'),
+                          content: Text(commentaire),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('Fermer'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Card(
+                    color: index.isEven ? Color(0xFF3E4A8C) : Color(0xFF5F63A4),
+                    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fullName,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Text('Statut: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('${student['status'] ?? '—'}', style: TextStyle(color: Colors.white)),
+                              SizedBox(width: 16),
+                              Text('+: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('${student['plus']}', style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                          SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.check, color: Colors.green),
+                                onPressed: () => _markPresence(student['sid'], 'présent'),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.close, color: Colors.red),
+                                onPressed: () => _markPresence(student['sid'], 'absent'),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.warning, color: Colors.orange),
+                                onPressed: () => _markPresence(student['sid'], 'justifié'),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.comment, color: Colors.white),
+                                onPressed: () => _addComment(context, student['sid']),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add, color: Colors.white),
+                                onPressed: () => _addPlus(student['sid']),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+  ),);}
+
+
+
+  }
 
 
 class _ClassesListScreenState extends State<ClassesListScreen> {
@@ -2242,7 +2701,7 @@ class Dtabase {
 
   Future<Database> _initDatabase() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'ab7.db');
+    String path = join(databasesPath, 'ab8.db');
     return await openDatabase(
       path,
       version: 4,
@@ -2268,7 +2727,16 @@ class Dtabase {
             UNIQUE(number, speciality, level,type)
           )
         ''');
-
+          await db.execute('''
+    CREATE TABLE IF NOT EXISTS presences (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER,
+      student_id INTEGER,
+      status TEXT,
+      plus INTEGER DEFAULT 0,
+      commentaire TEXT
+    )
+  ''');
         await db.execute('''
           CREATE TABLE student (
             sid INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2286,7 +2754,7 @@ class Dtabase {
         groupId INTEGER,
         date TEXT,
         time TEXT,
-        FOREIGN KEY(group_id) REFERENCES "group"(gid)
+        FOREIGN KEY(groupId) REFERENCES "group"(gid)
       )
     ''');
         await db.execute('''
@@ -2315,31 +2783,6 @@ class Dtabase {
       return true;
     } catch (e) {
       print('Erreur lors de l\'insertion de la classe : $e');
-      return false;
-    }
-  }
-  Future<bool> updateSession(int sessionId, DateTime newDate, TimeOfDay newTime) async {
-    try {
-      final db = await database;
-
-      final String formattedDate =
-          "${newDate.year.toString().padLeft(4, '0')}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}";
-      final String formattedTime =
-          "${newTime.hour.toString().padLeft(2, '0')}:${newTime.minute.toString().padLeft(2, '0')}";
-
-      int count = await db.update(
-        'sessions',
-        {
-          'date': formattedDate,
-          'time': formattedTime,
-        },
-        where: 'id = ?',
-        whereArgs: [sessionId],
-      );
-
-      return count > 0;
-    } catch (e) {
-      print('Erreur lors de la mise à jour de la session : $e');
       return false;
     }
   }
@@ -2551,30 +2994,145 @@ class Dtabase {
     await db.delete('class_group', where: 'group_id = ?', whereArgs: [groupId]);
   }
   //new
-  Future<bool> insertSession(int groupId, DateTime date, TimeOfDay time) async {
-    try {
-      final db = await database; // Use the singleton database instance.
+  Future<List<Map<String, dynamic>>> getSessionsByGroup(int groupId) async {
+    final db = await database;
+    return await db.query(
+      'sessions',
+      where: 'groupId = ?',
+      whereArgs: [groupId],
+    );
+  }
 
-      final String formattedDate =
-          "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-      final String formattedTime =
-          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+  Future<void> insertSession(int groupId, String date, String time) async {
+    final db = await database;
+    await db.insert('sessions', {
+      'groupId': groupId,
+      'date': date,
+      'time': time,
+    });
+  }
+  Future<void> updateSession(int sessionId, String date, String time) async {
+    final db = await database;
+    await db.update(
+      'sessions',
+      {
+        'date': date,
+        'time': time,
+      },
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
+  }
 
-      await db.insert(
-        'sessions',
-        {
-          'groupId': groupId,
-          'date': formattedDate,
-          'time': formattedTime,
-        },
-        // conflictAlgorithm: ConflictAlgorithm.replace, ← نحذفها
+  Future<void> deleteSession(int sessionId) async {
+    final db = await database;
+    await db.delete(
+      'sessions',
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
+  }
+  Future<List<Map<String, dynamic>>> getStudentsBySession(int sessionId) async {
+    final db = await database;
+
+    // أولاً نأتي بـ groupId المرتبط بالحصة
+    final session = await db.query(
+      'sessions',
+      where: 'id = ?',
+      whereArgs: [sessionId],
+    );
+
+    if (session.isEmpty) return [];
+
+    final groupId = session.first['groupId'];
+
+    // نجلب الطلاب الذين ينتمون إلى نفس المجموعة مع حالتهم في هذه الحصة
+    return await db.rawQuery('''
+    SELECT s.sid, s.finame, s.famname,
+           p.status,
+           IFNULL(p.plus, 0) as plus,
+           IFNULL(p.commentaire, '') as commentaire
+    FROM student s
+    LEFT JOIN presences p
+      ON s.sid = p.student_id AND p.session_id = ?
+    WHERE s.group_id = ?
+  ''', [sessionId, groupId]);
+  }
+
+  Future<void> markPresence(int sessionId, int studentId, String status) async {
+    final db = await database;
+    final result = await db.query(
+      'presences',
+      where: 'session_id = ? AND student_id = ?',
+      whereArgs: [sessionId, studentId],
+    );
+
+    if (result.isEmpty) {
+      await db.insert('presences', {
+        'session_id': sessionId,
+        'student_id': studentId,
+        'status': status,
+      });
+    } else {
+      await db.update(
+        'presences',
+        {'status': status},
+        where: 'session_id = ? AND student_id = ?',
+        whereArgs: [sessionId, studentId],
       );
-      return true;
-    } catch (e) {
-      print('Erreur lors de l\'insertion de session : $e');
-      return false;
+    }
+  }
+  Future<void> incrementPlus(int sessionId, int studentId) async {
+    final db = await database;
+
+    final result = await db.query(
+      'presences',
+      where: 'session_id = ? AND student_id = ?',
+      whereArgs: [sessionId, studentId],
+    );
+
+    if (result.isEmpty) {
+      await db.insert('presences', {
+        'session_id': sessionId,
+        'student_id': studentId,
+        'plus': 1,
+      });
+    } else {
+      int currentPlus = result.first['plus'] as int? ?? 0;
+      await db.update(
+        'presences',
+        {'plus': currentPlus + 1},
+        where: 'session_id = ? AND student_id = ?',
+        whereArgs: [sessionId, studentId],
+      );
+    }
+  }
+  Future<void> addComment(int sessionId, int studentId, String comment) async {
+    final db = await database;
+
+    final result = await db.query(
+      'presences',
+      where: 'session_id = ? AND student_id = ?',
+      whereArgs: [sessionId, studentId],
+    );
+
+    if (result.isEmpty) {
+      await db.insert('presences', {
+        'session_id': sessionId,
+        'student_id': studentId,
+        'commentaire': comment,
+      });
+    } else {
+      await db.update(
+        'presences',
+        {'commentaire': comment},
+        where: 'session_id = ? AND student_id = ?',
+        whereArgs: [sessionId, studentId],
+      );
     }
   }
 
 }
+
+
 
